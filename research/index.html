@@ -8,304 +8,149 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-        background: #000000;
-        color: #ff8800;
+        background: #000;
+        color: #999;
         font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
         min-height: 100vh;
         display: flex;
         flex-direction: column;
     }
 
-    /* ── Top bar ─────────────────────────────────────────────────── */
-    .topbar {
-        background: #001133;
-        border-bottom: 1px solid #003366;
-        padding: 8px 24px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    .page {
+        flex: 1;
+        max-width: 720px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 80px 32px 60px;
     }
 
-    .topbar-brand {
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 4px;
-        color: #ff8800;
-    }
-
-    .topbar-nav a {
-        color: #666666;
+    .back {
+        display: inline-block;
+        color: #333;
         text-decoration: none;
-        font-size: 11px;
-        letter-spacing: 2px;
+        font-size: 10px;
+        letter-spacing: 3px;
+        margin-bottom: 48px;
         transition: color 0.2s;
     }
 
-    .topbar-nav a:hover {
-        color: #ffaa00;
+    .back:hover {
+        color: #ff8800;
     }
 
-    /* ── Header panel ────────────────────────────────────────────── */
-    .header-panel {
-        border-bottom: 1px solid #222;
-        padding: 20px 24px 16px;
-    }
-
-    .header-panel h1 {
-        font-size: 18px;
-        font-weight: 700;
-        letter-spacing: 6px;
-        color: #ffaa00;
-        margin-bottom: 4px;
-    }
-
-    .header-sub {
+    .brand {
         font-size: 10px;
-        color: #555;
-        letter-spacing: 3px;
+        letter-spacing: 5px;
+        color: #333;
+        margin-bottom: 12px;
     }
 
-    .cursor-blink {
-        display: inline-block;
-        width: 7px;
-        height: 14px;
-        background: #ff8800;
-        margin-left: 6px;
-        vertical-align: middle;
-        animation: blink 1s step-end infinite;
+    h1 {
+        font-size: 24px;
+        font-weight: 300;
+        letter-spacing: 8px;
+        color: #e8e8e8;
+        margin-bottom: 48px;
     }
 
-    @keyframes blink {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0; }
+    .divider {
+        border: none;
+        border-top: 1px solid #111;
+        margin-bottom: 0;
     }
 
-    /* ── Status bar ──────────────────────────────────────────────── */
-    .status-bar {
-        background: #0a0a0a;
-        border-bottom: 1px solid #1a1a1a;
-        padding: 6px 24px;
-        display: flex;
-        justify-content: space-between;
-        font-size: 10px;
-        letter-spacing: 2px;
-        color: #444;
-    }
-
-    .status-bar .status-count {
-        color: #00ff00;
-    }
-
-    /* ── Research table ──────────────────────────────────────────── */
-    .table-container {
-        flex: 1;
-        padding: 0 24px 40px;
-    }
-
-    .research-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 0;
-    }
-
-    .research-table thead th {
-        background: #0d0d0d;
-        border-bottom: 1px solid #333;
-        border-top: 1px solid #1a1a1a;
-        padding: 10px 12px;
-        text-align: left;
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: 3px;
-        color: #666;
-    }
-
-    .research-table thead th.col-idx {
-        width: 50px;
-        text-align: center;
-    }
-
-    .research-table thead th.col-date {
-        width: 130px;
-    }
-
-    .research-table thead th.col-type {
-        width: 80px;
-    }
-
-    .research-table tbody tr {
+    /* ── Research entries ──────────────────────────────────────── */
+    .entry {
+        display: block;
+        text-decoration: none;
+        padding: 28px 0;
         border-bottom: 1px solid #111;
         transition: background 0.15s;
         cursor: pointer;
     }
 
-    .research-table tbody tr:hover {
-        background: #0d1a00;
+    .entry:hover {
+        background: rgba(255, 136, 0, 0.02);
     }
 
-    .research-table tbody tr:hover td {
-        color: #ffcc00;
-    }
-
-    .research-table tbody td {
-        padding: 12px 12px;
-        font-size: 12px;
-        color: #cc7700;
-        letter-spacing: 1px;
-        vertical-align: middle;
-    }
-
-    .research-table tbody td.col-idx {
-        text-align: center;
-        color: #333;
-        font-size: 10px;
-    }
-
-    .research-table tbody td.col-date {
-        color: #888;
-        font-size: 11px;
-        letter-spacing: 2px;
-    }
-
-    .research-table tbody td.col-type {
-        font-size: 9px;
-        letter-spacing: 2px;
-    }
-
-    .research-table tbody td.col-type span {
-        background: #1a0a00;
-        border: 1px solid #331a00;
-        padding: 2px 6px;
+    .entry:hover .entry-title {
         color: #ff8800;
     }
 
-    .research-table tbody td.col-title {
-        color: #ffaa00;
-        font-weight: 500;
-    }
-
-    .research-table tbody td.col-title a {
-        color: inherit;
-        text-decoration: none;
-    }
-
-    .research-table tbody td.col-title a:hover {
-        text-decoration: underline;
-        text-underline-offset: 3px;
-    }
-
-    /* ── Footer ──────────────────────────────────────────────────── */
-    .footer-bar {
-        background: #001133;
-        border-top: 1px solid #003366;
-        padding: 8px 24px;
+    .entry-meta {
         display: flex;
-        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 8px;
+    }
+
+    .entry-date {
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: #444;
+    }
+
+    .entry-tag {
         font-size: 9px;
         letter-spacing: 2px;
-        color: #333;
-        margin-top: auto;
+        color: #ff8800;
+        opacity: 0.5;
     }
 
-    .footer-bar .sys {
-        color: #00ff00;
+    .entry-title {
+        font-size: 15px;
+        font-weight: 400;
+        color: #ccc;
+        letter-spacing: 1px;
+        transition: color 0.2s;
     }
 
-    /* ── Decorative grid lines ───────────────────────────────────── */
-    .grid-line {
-        border-bottom: 1px solid #0a0a0a;
-        height: 0;
+    /* ── Footer ──────────────────────────────────────────────── */
+    .foot {
+        padding: 24px 32px;
+        text-align: center;
+        font-size: 9px;
+        letter-spacing: 3px;
+        color: #222;
     }
 
-    /* ── Responsive ──────────────────────────────────────────────── */
-    @media (max-width: 600px) {
-        .topbar, .header-panel, .status-bar, .table-container, .footer-bar {
-            padding-left: 12px;
-            padding-right: 12px;
+    @media (max-width: 480px) {
+        .page {
+            padding: 48px 20px 40px;
         }
-        .research-table thead th.col-idx,
-        .research-table tbody td.col-idx,
-        .research-table thead th.col-type,
-        .research-table tbody td.col-type {
-            display: none;
-        }
-        .research-table tbody td {
-            font-size: 11px;
-            padding: 10px 8px;
+        h1 {
+            font-size: 18px;
+            letter-spacing: 5px;
         }
     }
 </style>
 </head>
 <body>
 
-<!-- Top bar -->
-<div class="topbar">
-    <div class="topbar-brand">MM CAPITAL</div>
-    <nav class="topbar-nav">
-        <a href="../">&lt; HOME</a>
-    </nav>
+<div class="page">
+    <a href="../" class="back">&larr; HOME</a>
+    <div class="brand">MM CAPITAL</div>
+    <h1>RESEARCH</h1>
+    <hr class="divider">
+
+    <a href="end-of-qt-nov-2025.pdf" target="_blank" class="entry">
+        <div class="entry-meta">
+            <span class="entry-date">2025.11.17</span>
+            <span class="entry-tag">PDF</span>
+        </div>
+        <div class="entry-title">The End of QT Is Not What You Think</div>
+    </a>
+
+    <a href="liquidity-outlook-nov-2025.pdf" target="_blank" class="entry">
+        <div class="entry-meta">
+            <span class="entry-date">2025.11.05</span>
+            <span class="entry-tag">PDF</span>
+        </div>
+        <div class="entry-title">Liquidity Outlook</div>
+    </a>
 </div>
 
-<!-- Header -->
-<div class="header-panel">
-    <h1>RESEARCH<span class="cursor-blink"></span></h1>
-    <div class="header-sub">PUBLICATIONS &amp; MARKET ANALYSIS</div>
-</div>
-
-<!-- Status bar -->
-<div class="status-bar">
-    <span>ITEMS: <span class="status-count">2</span></span>
-    <span>FILTER: ALL</span>
-    <span>SORTED: DATE DESC</span>
-</div>
-
-<!-- Research table -->
-<div class="table-container">
-    <table class="research-table">
-        <thead>
-            <tr>
-                <th class="col-idx">#</th>
-                <th class="col-date">DATE</th>
-                <th class="col-type">TYPE</th>
-                <th class="col-title">TITLE</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr onclick="window.open('end-of-qt-nov-2025.pdf','_blank')">
-                <td class="col-idx">01</td>
-                <td class="col-date">2025-11-17</td>
-                <td class="col-type"><span>PDF</span></td>
-                <td class="col-title"><a href="end-of-qt-nov-2025.pdf" target="_blank">The End of QT Is Not What You Think</a></td>
-            </tr>
-            <tr onclick="window.open('liquidity-outlook-nov-2025.pdf','_blank')">
-                <td class="col-idx">02</td>
-                <td class="col-date">2025-11-05</td>
-                <td class="col-type"><span>PDF</span></td>
-                <td class="col-title"><a href="liquidity-outlook-nov-2025.pdf" target="_blank">Liquidity Outlook</a></td>
-            </tr>
-        </tbody>
-    </table>
-</div>
-
-<!-- Footer -->
-<div class="footer-bar">
-    <span>&copy; MM CAPITAL</span>
-    <span class="sys">SYS ONLINE</span>
-    <span id="clock"></span>
-</div>
-
-<script>
-    // Live clock in footer
-    function updateClock() {
-        var now = new Date();
-        var h = String(now.getUTCHours()).padStart(2, '0');
-        var m = String(now.getUTCMinutes()).padStart(2, '0');
-        var s = String(now.getUTCSeconds()).padStart(2, '0');
-        document.getElementById('clock').textContent = h + ':' + m + ':' + s + ' UTC';
-    }
-    updateClock();
-    setInterval(updateClock, 1000);
-</script>
+<div class="foot">&copy; MM CAPITAL</div>
 
 </body>
 </html>
