@@ -79,16 +79,6 @@
         text-shadow: 0 0 14px rgba(255,255,255,0.25), 0 0 40px rgba(255,255,255,0.1);
     }
 
-    .corner-bl {
-        position: fixed;
-        bottom: 28px;
-        left: 32px;
-        font-size: 10px;
-        letter-spacing: 6px;
-        color: #222;
-        z-index: 10;
-    }
-
     /* ── Login form ───────────────────────────────────────────── */
     .login-box {
         width: 100%;
@@ -170,7 +160,6 @@
     @media (max-width: 600px) {
         .corner-tl { top: 20px; left: 20px; }
         .corner-br { bottom: 20px; right: 20px; }
-        .corner-bl { bottom: 20px; left: 20px; }
         .corner-tl .title { font-size: 20px; }
     }
 </style>
@@ -197,9 +186,6 @@
     <button class="submit-btn" id="loginBtn">LOG IN</button>
     <div class="error" id="errorMsg">ACCESS DENIED</div>
 </div>
-
-<!-- Bottom left — brand -->
-<div class="corner-bl">MILKMAN CAPITAL</div>
 
 <!-- Bottom right — nav -->
 <div class="corner-br">

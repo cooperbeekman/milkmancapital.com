@@ -57,18 +57,6 @@
     }
     #price-tag.tag-up { background: #0a2a0a; color: #4f4; border: 1px solid rgba(68,255,68,0.25); }
     #price-tag.tag-dn { background: #2a0a0a; color: #f44; border: 1px solid rgba(255,68,68,0.25); }
-    #brand {
-        position: fixed;
-        bottom: 28px;
-        left: 32px;
-        font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
-        font-size: 10px;
-        letter-spacing: 6px;
-        color: #222;
-        pointer-events: none;
-        user-select: none;
-        z-index: 10;
-    }
     #nav {
         position: fixed;
         bottom: 28px;
@@ -124,7 +112,6 @@
     <a href="research/">RESEARCH</a>
     <a href="login.html">INVESTOR LOG IN</a>
 </div>
-<div id="brand">MILKMAN CAPITAL</div>
 
 <script type="module">
 import * as THREE from 'three';
@@ -214,12 +201,12 @@ function connectWS() {
         ws.send(JSON.stringify({
             type: 'subscribe',
             product_ids: ['BTC-USD'],
-            channels: ['ticker']
+            channels: ['ticker', 'matches']
         }));
     };
     ws.onmessage = (e) => {
         const d = JSON.parse(e.data);
-        if (d.type === 'ticker' && d.price) {
+        if ((d.type === 'ticker' || d.type === 'match' || d.type === 'last_match') && d.price) {
             processTick(parseFloat(d.price), new Date(d.time).getTime());
         }
     };
@@ -300,13 +287,14 @@ const hudPrice = document.getElementById('hud-price');
 const hudChange = document.getElementById('hud-change');
 
 function updateHUD() {
-    if (latestPrice <= 0) return;
-    hudPrice.textContent = '$' + latestPrice.toLocaleString(undefined, {
+    const p = displayPrice > 0 ? displayPrice : latestPrice;
+    if (p <= 0) return;
+    hudPrice.textContent = '$' + p.toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
     if (firstPrice > 0) {
-        const pct = (latestPrice - firstPrice) / firstPrice * 100;
+        const pct = (p - firstPrice) / firstPrice * 100;
         hudChange.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(3) + '%';
         hudChange.className = pct >= 0 ? 'up' : 'dn';
     }
@@ -325,9 +313,12 @@ let closeFlashBucket = -1;
 let closeFlashStart = -10;
 const focusTarget = new THREE.Vector3();
 
+// ── Live price interpolation for zero-lag feel ───────────────────
+let displayPrice = 0;
+let priceVelocity = 0;
+
 // ── Animation Loop ─────────────────────────────────────────────────
 const clock = new THREE.Clock();
-let frameCount = 0;
 
 function animate() {
     requestAnimationFrame(animate);
@@ -368,6 +359,14 @@ function animate() {
         return;
     }
 
+    // Smoothly interpolate display price toward latest with momentum
+    if (displayPrice === 0 && latestPrice > 0) displayPrice = latestPrice;
+    if (latestPrice > 0) {
+        const priceDiff = latestPrice - displayPrice;
+        priceVelocity = priceVelocity * 0.7 + priceDiff * 0.3;
+        displayPrice += priceVelocity;
+    }
+
     // Price range for normalization
     let pMin = Infinity, pMax = -Infinity;
     for (let k = 0; k < numCandles; k++) {
@@ -395,7 +394,13 @@ function animate() {
             const li = i % perC;
             const candle = visible[ci];
 
-            const bull = candle.c >= candle.o;
+            // For the live candle, use smoothly interpolated price
+            const isLive = ci === numCandles - 1 && liveCandle;
+            const effectiveClose = isLive && displayPrice > 0 ? displayPrice : candle.c;
+            const effectiveHigh = isLive ? Math.max(candle.h, effectiveClose) : candle.h;
+            const effectiveLow = isLive ? Math.min(candle.l, effectiveClose) : candle.l;
+
+            const bull = effectiveClose >= candle.o;
 
             // Is this candle the one that just closed?
             const isFlashing = flashActive && candle.t === closeFlashBucket;
@@ -404,9 +409,9 @@ function animate() {
 
             // Normalize OHLC to roughly [-0.5, 0.5]
             const oN = (candle.o - pMid) / pRange;
-            const cN = (candle.c - pMid) / pRange;
-            const hN = (candle.h - pMid) / pRange;
-            const lN = (candle.l - pMid) / pRange;
+            const cN = (effectiveClose - pMid) / pRange;
+            const hN = (effectiveHigh - pMid) / pRange;
+            const lN = (effectiveLow - pMid) / pRange;
             const bodyLo = bull ? oN : cN;
             const bodyHi = bull ? cN : oN;
 
@@ -484,8 +489,10 @@ function animate() {
             color.setHSL(gHue, 0.96, gLit);
         }
 
-        // Smooth lerp to target
-        positions[i].lerp(target, 0.1);
+        // Lerp — live candle snaps fast, historical candles drift smoothly
+        const isLiveCandle = (i < candleN) && (Math.floor(i / perC) >= numCandles - 1 || Math.floor(i / perC) === numCandles - 1);
+        const lerpSpeed = isLiveCandle ? 0.35 : 0.1;
+        positions[i].lerp(target, lerpSpeed);
         dummy.position.copy(positions[i]);
         dummy.updateMatrix();
         mesh.setMatrixAt(i, dummy.matrix);
@@ -496,9 +503,9 @@ function animate() {
     mesh.instanceColor.needsUpdate = true;
 
     // ── Price line across chart at current price ──────────────────
-    if (latestPrice > 0 && numCandles > 0) {
-        const priceNorm = (latestPrice - pMid) / pRange;
-        const bull = liveCandle && latestPrice >= liveCandle.o;
+    if (displayPrice > 0 && numCandles > 0) {
+        const priceNorm = (displayPrice - pMid) / pRange;
+        const bull = liveCandle && displayPrice >= liveCandle.o;
 
         // Match the live candle's breathing offset so line aligns with body edge
         const lastPhase = (numCandles - 1) * 0.44;
@@ -534,7 +541,7 @@ function animate() {
             priceTag.style.left = sx + 4 + 'px';
             priceTag.style.top = sy + 'px';
             priceTag.style.transform = 'translateY(-50%)';
-            priceTag.textContent = '$' + latestPrice.toLocaleString(undefined, {
+            priceTag.textContent = '$' + displayPrice.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             });
@@ -550,9 +557,7 @@ function animate() {
         priceTag.style.opacity = '0';
     }
 
-    // Throttle HUD updates
-    frameCount++;
-    if (frameCount % 10 === 0) updateHUD();
+    updateHUD();
 
     composer.render();
 }
