@@ -66,7 +66,7 @@
 <body>
 
 <div id="hud">
-    <div id="hud-pair">BTC / USDT</div>
+    <div id="hud-pair">BTC / USD</div>
     <div id="hud-price">&middot;&middot;&middot;</div>
     <div id="hud-change"></div>
     <div id="hud-tf">30S CANDLES &middot; LIVE</div>
@@ -86,7 +86,7 @@ const COUNT = 20000;
 const CANDLE_MS = 30000;
 const MAX_VISIBLE = 22;
 
-// ── Bitcoin Data ───────────────────────────────────────────────────
+// ── Bitcoin Data (Coinbase) ────────────────────────────────────────
 let candleHistory = [];
 let liveCandle = null;
 let latestPrice = 0;
@@ -113,42 +113,61 @@ function processTick(price, timestamp) {
 
 async function initData() {
     try {
-        // Seed with 1-second klines (~11 min = ~22 thirty-second candles)
+        // Fetch 1-minute candles from Coinbase to seed history
+        // Coinbase returns [time, low, high, open, close, volume]
         const res = await fetch(
-            'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1s&limit=660'
+            'https://api.exchange.coinbase.com/products/BTC-USD/candles?granularity=60'
         );
-        if (!res.ok) throw new Error('klines unavailable');
+        if (!res.ok) throw new Error('Coinbase API error');
         const klines = await res.json();
 
-        for (const k of klines) {
-            const t = k[0];
-            const o = parseFloat(k[1]);
-            const h = parseFloat(k[2]);
-            const l = parseFloat(k[3]);
-            const c = parseFloat(k[4]);
-            const bucket = Math.floor(t / CANDLE_MS) * CANDLE_MS;
+        // Coinbase returns newest first, reverse for chronological order
+        klines.reverse();
 
-            if (!liveCandle || liveCandle.t !== bucket) {
-                if (liveCandle) candleHistory.push(liveCandle);
-                liveCandle = { t: bucket, o, h, l, c };
-            } else {
-                if (h > liveCandle.h) liveCandle.h = h;
-                if (l < liveCandle.l) liveCandle.l = l;
-                liveCandle.c = c;
-            }
+        // Take last ~15 minutes and split each 1m candle into two 30s candles
+        const recent = klines.slice(-15);
+        for (const k of recent) {
+            const t = k[0] * 1000; // seconds to ms
+            const low = k[1];
+            const high = k[2];
+            const open = k[3];
+            const close = k[4];
+
+            // First 30s half: open → midpoint
+            const mid = (open + close) / 2;
+            const midH = (high + Math.max(open, mid)) / 2;
+            const midL = (low + Math.min(open, mid)) / 2;
+            const bucket1 = Math.floor(t / CANDLE_MS) * CANDLE_MS;
+            if (liveCandle) candleHistory.push(liveCandle);
+            liveCandle = { t: bucket1, o: open, h: midH, l: midL, c: mid };
+
+            // Second 30s half: midpoint → close
+            const bucket2 = bucket1 + CANDLE_MS;
+            candleHistory.push(liveCandle);
+            liveCandle = { t: bucket2, o: mid, h: Math.max(mid, high, close), l: Math.min(mid, low, close), c: close };
         }
+
         if (candleHistory.length > 0) firstPrice = candleHistory[0].o;
     } catch (e) {
-        console.warn('Historical seed failed, waiting for live data');
+        console.warn('Historical seed failed:', e);
     }
     connectWS();
 }
 
 function connectWS() {
-    const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade');
+    const ws = new WebSocket('wss://ws-feed.exchange.coinbase.com');
+    ws.onopen = () => {
+        ws.send(JSON.stringify({
+            type: 'subscribe',
+            product_ids: ['BTC-USD'],
+            channels: ['ticker']
+        }));
+    };
     ws.onmessage = (e) => {
         const d = JSON.parse(e.data);
-        processTick(parseFloat(d.p), d.T);
+        if (d.type === 'ticker' && d.price) {
+            processTick(parseFloat(d.price), new Date(d.time).getTime());
+        }
     };
     ws.onerror = () => ws.close();
     ws.onclose = () => setTimeout(connectWS, 3000);
