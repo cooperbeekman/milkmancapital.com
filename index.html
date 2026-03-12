@@ -430,8 +430,12 @@ function animate() {
     // ── Price line across chart at current price ──────────────────
     if (latestPrice > 0 && numCandles > 0) {
         const priceNorm = (latestPrice - pMid) / pRange;
-        const priceY = priceNorm * scaleY + globalBreath;
         const bull = liveCandle && latestPrice >= liveCandle.o;
+
+        // Match the live candle's breathing offset so line aligns with body edge
+        const lastPhase = (numCandles - 1) * 0.44;
+        const lastBob = Math.sin(time * 0.52 + lastPhase) * breathAmt * 0.65;
+        const priceY = priceNorm * scaleY + globalBreath + lastBob;
 
         lineMat.color.setHex(bull ? 0x44ff44 : 0xff4444);
         lineMat.opacity = 0.3;
