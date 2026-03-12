@@ -281,6 +281,12 @@ const breathAmt = 3;
 const driftAmt = 1.2;
 const orbitSpd = 0.19;
 
+// ── Candle Close Animation State ──────────────────────────────────
+let prevHistoryLen = 0;
+let closeFlashBucket = -1;
+let closeFlashStart = -10;
+const focusTarget = new THREE.Vector3();
+
 // ── Animation Loop ─────────────────────────────────────────────────
 const clock = new THREE.Clock();
 let frameCount = 0;
@@ -290,13 +296,34 @@ function animate() {
     clock.getDelta();
     const time = clock.getElapsedTime();
 
-    controls.update();
-
-    // Visible candles
+    // Visible candles (computed early for focus target)
     const all = [...candleHistory];
     if (liveCandle) all.push(liveCandle);
     const visible = all.slice(-MAX_VISIBLE);
     const numCandles = visible.length;
+
+    // Detect candle close
+    if (candleHistory.length > prevHistoryLen && candleHistory.length > 0) {
+        closeFlashBucket = candleHistory[candleHistory.length - 1].t;
+        closeFlashStart = time;
+        prevHistoryLen = candleHistory.length;
+    }
+
+    // Orbit (computed before controls for focus target)
+    const orbitAngle = time * orbitSpd;
+    const cosO = Math.cos(orbitAngle);
+    const sinO = Math.sin(orbitAngle);
+    const globalBreath = Math.sin(time * 0.33) * breathAmt;
+
+    // Focus target: midpoint between chart center and live candle
+    if (numCandles > 1) {
+        const lastCX = ((numCandles - 1) / numCandles - 0.5) * spreadX;
+        const focusX = lastCX * 0.4;
+        focusTarget.set(focusX * cosO, globalBreath * 0.3, -focusX * sinO);
+        controls.target.lerp(focusTarget, 0.015);
+    }
+
+    controls.update();
 
     if (numCandles === 0) {
         composer.render();
@@ -312,16 +339,14 @@ function animate() {
     const pRange = pMax - pMin || 1;
     const pMid = (pMax + pMin) * 0.5;
 
-    // Orbit
-    const orbitAngle = time * orbitSpd;
-    const cosO = Math.cos(orbitAngle);
-    const sinO = Math.sin(orbitAngle);
-    const globalBreath = Math.sin(time * 0.33) * breathAmt;
-
     // Partition particles
     const ribbonN = Math.floor(COUNT * 0.06);
     const candleN = COUNT - ribbonN;
     const perC = Math.max(Math.floor(candleN / numCandles), 1);
+
+    // Flash state
+    const flashAge = time - closeFlashStart;
+    const flashActive = flashAge < 1.5;
 
     for (let i = 0; i < COUNT; i++) {
 
@@ -333,6 +358,11 @@ function animate() {
             const candle = visible[ci];
 
             const bull = candle.c >= candle.o;
+
+            // Is this candle the one that just closed?
+            const isFlashing = flashActive && candle.t === closeFlashBucket;
+            const flashIntensity = isFlashing ? Math.exp(-flashAge * 3) : 0;
+            const expandFactor = isFlashing ? 1 + Math.exp(-flashAge * 2) * 3 : 1;
 
             // Normalize OHLC to roughly [-0.5, 0.5]
             const oN = (candle.o - pMid) / pRange;
@@ -356,9 +386,9 @@ function animate() {
             const phase = ci * 0.44;
             const bob = Math.sin(time * 0.52 + phase) * breathAmt * 0.65;
 
-            // Organic drift
+            // Organic drift (amplified during flash)
             const seed = ci * 2.3999 + 7.13;
-            const dBody = driftAmt * (isBody ? 1.0 : 0.15);
+            const dBody = driftAmt * (isBody ? 1.0 : 0.15) * expandFactor;
             const jx = (Math.sin(li * 13.7 + seed + time * 0.8)  * 0.55
                       + Math.sin(li *  5.1 + seed + time * 0.31) * 0.45) * dBody;
             const jy = (Math.sin(li *  8.3 + seed + time * 0.57) * 0.5
@@ -382,7 +412,7 @@ function animate() {
             color.setHSL(
                 baseHue + iriShift,
                 isBody ? 0.90 : 0.55,
-                coreLit + pulse
+                coreLit + pulse + flashIntensity * 0.4
             );
 
         } else {
