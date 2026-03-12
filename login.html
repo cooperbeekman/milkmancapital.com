@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investor Access – MM CAPITAL</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        background: #000000;
+        color: #ff8800;
+        font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* ── Top bar ─────────────────────────────────────────────────── */
+    .topbar {
+        background: #001133;
+        border-bottom: 1px solid #003366;
+        padding: 8px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .topbar-brand {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 4px;
+        color: #ff8800;
+    }
+
+    .topbar-nav a {
+        color: #666666;
+        text-decoration: none;
+        font-size: 11px;
+        letter-spacing: 2px;
+        transition: color 0.2s;
+    }
+
+    .topbar-nav a:hover {
+        color: #ffaa00;
+    }
+
+    /* ── Main content ────────────────────────────────────────────── */
+    .main {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+
+    .login-box {
+        width: 100%;
+        max-width: 420px;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────── */
+    .login-header {
+        border: 1px solid #222;
+        background: #0a0a0a;
+        padding: 20px 24px 16px;
+        border-bottom: none;
+    }
+
+    .login-header h1 {
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 6px;
+        color: #ffaa00;
+        margin-bottom: 4px;
+    }
+
+    .login-header-sub {
+        font-size: 10px;
+        color: #444;
+        letter-spacing: 3px;
+    }
+
+    .cursor-blink {
+        display: inline-block;
+        width: 7px;
+        height: 14px;
+        background: #ff8800;
+        margin-left: 6px;
+        vertical-align: middle;
+        animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+    }
+
+    /* ── Form area ───────────────────────────────────────────────── */
+    .login-form-area {
+        border: 1px solid #222;
+        background: #050505;
+        padding: 28px 24px;
+    }
+
+    .field {
+        margin-bottom: 20px;
+    }
+
+    .field label {
+        display: block;
+        font-size: 10px;
+        letter-spacing: 3px;
+        color: #555;
+        margin-bottom: 8px;
+    }
+
+    .field input {
+        width: 100%;
+        background: #000;
+        border: 1px solid #333;
+        color: #ffaa00;
+        font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+        font-size: 14px;
+        letter-spacing: 2px;
+        padding: 10px 12px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    .field input:focus {
+        border-color: #ff8800;
+        box-shadow: 0 0 8px rgba(255, 136, 0, 0.15);
+    }
+
+    .field input::placeholder {
+        color: #2a2a2a;
+        letter-spacing: 1px;
+    }
+
+    .prompt {
+        color: #333;
+        font-size: 11px;
+        margin-bottom: 4px;
+    }
+
+    .prompt span {
+        color: #00ff00;
+    }
+
+    /* ── Button ───────────────────────────────────────────────────── */
+    .login-btn {
+        width: 100%;
+        background: #1a0a00;
+        border: 1px solid #ff8800;
+        color: #ff8800;
+        font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 5px;
+        padding: 12px;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+        margin-top: 4px;
+    }
+
+    .login-btn:hover {
+        background: #ff8800;
+        color: #000;
+        box-shadow: 0 0 20px rgba(255, 136, 0, 0.3);
+    }
+
+    /* ── Error message ───────────────────────────────────────────── */
+    .error-area {
+        border: 1px solid #222;
+        border-top: none;
+        background: #0a0a0a;
+        padding: 0;
+        overflow: hidden;
+        max-height: 0;
+        transition: max-height 0.3s, padding 0.3s;
+    }
+
+    .error-area.visible {
+        max-height: 80px;
+        padding: 14px 24px;
+    }
+
+    .error-msg {
+        color: #ff3333;
+        font-size: 11px;
+        letter-spacing: 3px;
+        font-weight: 700;
+    }
+
+    .error-detail {
+        color: #662222;
+        font-size: 9px;
+        letter-spacing: 2px;
+        margin-top: 4px;
+    }
+
+    /* ── Status line ─────────────────────────────────────────────── */
+    .login-status {
+        border: 1px solid #222;
+        border-top: none;
+        background: #050505;
+        padding: 8px 24px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 9px;
+        color: #333;
+        letter-spacing: 2px;
+    }
+
+    .login-status .secure {
+        color: #00ff00;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────────── */
+    .footer-bar {
+        background: #001133;
+        border-top: 1px solid #003366;
+        padding: 8px 24px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 9px;
+        letter-spacing: 2px;
+        color: #333;
+    }
+
+    .footer-bar .sys {
+        color: #00ff00;
+    }
+
+    /* ── Responsive ──────────────────────────────────────────────── */
+    @media (max-width: 480px) {
+        .login-header, .login-form-area, .error-area, .login-status {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+        .login-header h1 {
+            font-size: 14px;
+            letter-spacing: 4px;
+        }
+    }
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+    <div class="topbar-brand">MM CAPITAL</div>
+    <nav class="topbar-nav">
+        <a href="/">&lt; HOME</a>
+    </nav>
+</div>
+
+<!-- Main content -->
+<div class="main">
+    <div class="login-box">
+
+        <!-- Header -->
+        <div class="login-header">
+            <h1>INVESTOR ACCESS<span class="cursor-blink"></span></h1>
+            <div class="login-header-sub">SECURE TERMINAL LOGIN</div>
+        </div>
+
+        <!-- Form -->
+        <div class="login-form-area">
+            <div class="field">
+                <label>USERNAME</label>
+                <div class="prompt"><span>&gt;</span> ENTER CREDENTIALS</div>
+                <input type="text" id="username" placeholder="username" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="field">
+                <label>PASSWORD</label>
+                <input type="password" id="password" placeholder="********" autocomplete="off">
+            </div>
+            <button class="login-btn" id="loginBtn">LOG IN</button>
+        </div>
+
+        <!-- Error area -->
+        <div class="error-area" id="errorArea">
+            <div class="error-msg">ACCESS DENIED</div>
+            <div class="error-detail">INVALID CREDENTIALS &mdash; ATTEMPT LOGGED</div>
+        </div>
+
+        <!-- Status line -->
+        <div class="login-status">
+            <span class="secure">ENCRYPTED</span>
+            <span>TLS 1.3</span>
+            <span id="login-clock"></span>
+        </div>
+
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="footer-bar">
+    <span>&copy; MM CAPITAL</span>
+    <span class="sys">SYS ONLINE</span>
+    <span id="footer-clock"></span>
+</div>
+
+<script>
+    // Login button handler
+    document.getElementById('loginBtn').addEventListener('click', function() {
+        var errorArea = document.getElementById('errorArea');
+        errorArea.classList.remove('visible');
+        // Brief delay so the animation re-triggers if clicked again
+        setTimeout(function() {
+            errorArea.classList.add('visible');
+        }, 50);
+    });
+
+    // Also trigger on Enter key in either field
+    document.getElementById('username').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') document.getElementById('loginBtn').click();
+    });
+    document.getElementById('password').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') document.getElementById('loginBtn').click();
+    });
+
+    // Live clocks
+    function updateClocks() {
+        var now = new Date();
+        var h = String(now.getUTCHours()).padStart(2, '0');
+        var m = String(now.getUTCMinutes()).padStart(2, '0');
+        var s = String(now.getUTCSeconds()).padStart(2, '0');
+        var ts = h + ':' + m + ':' + s + ' UTC';
+        document.getElementById('login-clock').textContent = ts;
+        document.getElementById('footer-clock').textContent = ts;
+    }
+    updateClocks();
+    setInterval(updateClocks, 1000);
+</script>
+
+</body>
+</html>
