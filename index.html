@@ -261,7 +261,10 @@ const geo = new THREE.TetrahedronGeometry(0.25);
 const mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 const mesh = new THREE.InstancedMesh(geo, mat, COUNT);
 mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+mesh.visible = false;
 scene.add(mesh);
+
+let hasRenderedCandles = false;
 
 const positions = [];
 for (let i = 0; i < COUNT; i++) {
@@ -363,6 +366,13 @@ function animate() {
     if (numCandles === 0) {
         composer.render();
         return;
+    }
+
+    // Show mesh and snap particles on first data frame
+    const isFirstFrame = !hasRenderedCandles;
+    if (isFirstFrame) {
+        mesh.visible = true;
+        hasRenderedCandles = true;
     }
 
     // Price range for normalization
@@ -481,8 +491,8 @@ function animate() {
             color.setHSL(gHue, 0.96, gLit);
         }
 
-        // Smooth lerp to target
-        positions[i].lerp(target, 0.1);
+        // Snap on first frame, smooth lerp after
+        positions[i].lerp(target, isFirstFrame ? 1.0 : 0.1);
         dummy.position.copy(positions[i]);
         dummy.updateMatrix();
         mesh.setMatrixAt(i, dummy.matrix);
