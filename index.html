@@ -254,15 +254,23 @@ controls.zoomSpeed = isMobile ? 0.5 : 1.0;
 controls.rotateSpeed = isMobile ? 0.5 : 1.0;
 controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY };
 
-const composer = new EffectComposer(renderer);
-composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(
-    new THREE.Vector2(innerWidth, innerHeight), 1.5, 0.4, 0.85
-);
-bloom.strength = isMobile ? 1.0 : 1.8;
-bloom.radius = isMobile ? 0.2 : 0.4;
-bloom.threshold = isMobile ? 0.1 : 0;
-composer.addPass(bloom);
+let composer = null;
+if (!isMobile) {
+    composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    const bloom = new UnrealBloomPass(
+        new THREE.Vector2(innerWidth, innerHeight), 1.5, 0.4, 0.85
+    );
+    bloom.strength = 1.8;
+    bloom.radius = 0.4;
+    bloom.threshold = 0;
+    composer.addPass(bloom);
+}
+
+function renderScene() {
+    if (composer) composer.render();
+    else renderer.render(scene, camera);
+}
 
 // ── Instanced Mesh ─────────────────────────────────────────────────
 const dummy = new THREE.Object3D();
@@ -374,7 +382,7 @@ function animate() {
     controls.update();
 
     if (numCandles === 0) {
-        composer.render();
+        renderScene();
         return;
     }
 
@@ -564,7 +572,7 @@ function animate() {
     frameCount++;
     if (frameCount % 10 === 0) updateHUD();
 
-    composer.render();
+    renderScene();
 }
 
 animate();
@@ -574,7 +582,7 @@ addEventListener('resize', () => {
     camera.aspect = innerWidth / innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(innerWidth, innerHeight);
-    composer.setSize(innerWidth, innerHeight);
+    if (composer) composer.setSize(innerWidth, innerHeight);
 });
 </script>
 </body>
