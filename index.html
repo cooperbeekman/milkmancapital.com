@@ -69,6 +69,33 @@
         user-select: none;
         z-index: 10;
     }
+    #nav {
+        position: fixed;
+        bottom: 28px;
+        right: 32px;
+        font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+        text-align: right;
+        z-index: 10;
+    }
+    #nav .nav-title {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 4px;
+        color: #555;
+        margin-bottom: 12px;
+    }
+    #nav a {
+        display: block;
+        font-size: 10px;
+        letter-spacing: 3px;
+        color: #333;
+        text-decoration: none;
+        margin-top: 8px;
+        transition: color 0.3s;
+    }
+    #nav a:hover {
+        color: #888;
+    }
 </style>
 <script type="importmap">
 {
@@ -89,6 +116,11 @@
 </div>
 
 <div id="price-tag"></div>
+<div id="nav">
+    <div class="nav-title">MM CAPITAL</div>
+    <a href="research/">RESEARCH</a>
+    <a href="#">INVESTOR LOG IN</a>
+</div>
 <div id="brand">MILKMAN CAPITAL</div>
 
 <script type="module">
