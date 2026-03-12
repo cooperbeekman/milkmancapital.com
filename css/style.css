@@ -1,0 +1,255 @@
+/* ── Shared Styles ── */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;700&display=swap');
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    color: #fff;
+    font-family: 'IBM Plex Mono', 'Courier New', monospace;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ── Homepage ── */
+
+body.page-home {
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#chart {
+    margin: 0;
+    padding: 0;
+    font-family: 'IBM Plex Mono', 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 13px;
+    letter-spacing: 0;
+    white-space: pre;
+    user-select: none;
+    color: #555;
+}
+
+.g { color: #4f4; }
+.r { color: #f44; }
+
+/* ── Research pages ── */
+
+body.page-research {
+    overflow-y: auto;
+    min-height: 100vh;
+    background-color: #0a0a0a;
+    color: #e8dcc8;
+}
+
+.research-container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 60px 24px 120px;
+}
+
+.research-header {
+    margin-bottom: 60px;
+}
+
+.research-header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+.research-header nav a {
+    font-size: 12px;
+    font-weight: 400;
+    color: #a8d8e8;
+    text-decoration: none;
+    letter-spacing: 3px;
+    border-bottom: 1px solid #a8d8e822;
+    padding-bottom: 2px;
+    transition: border-color 0.4s, color 0.4s;
+}
+
+.research-header nav a:hover {
+    border-color: #a8d8e8aa;
+    color: #c8f0ff;
+}
+
+/* ── Post list ── */
+
+.post-list {
+    list-style: none;
+}
+
+.post-list li {
+    border-top: 1px solid #e8dcc80d;
+    padding: 28px 0;
+}
+
+.post-list li:last-child {
+    border-bottom: 1px solid #e8dcc80d;
+}
+
+.post-list a {
+    text-decoration: none;
+    display: block;
+}
+
+.post-list .post-date {
+    font-size: 11px;
+    font-weight: 300;
+    color: #4a453e;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+
+.post-list .post-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: #e8dcc8;
+    letter-spacing: 1px;
+    transition: color 0.3s;
+}
+
+.post-list a:hover .post-title {
+    color: #a8d8e8;
+}
+
+.post-list .post-summary {
+    font-size: 12px;
+    font-weight: 300;
+    color: #e8dcc855;
+    margin-top: 8px;
+    line-height: 1.6;
+}
+
+/* ── Individual post ── */
+
+.post-container {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 60px 24px 120px;
+}
+
+.post-meta {
+    margin-bottom: 48px;
+}
+
+.post-meta .post-date {
+    font-size: 11px;
+    font-weight: 300;
+    color: #4a453e;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+}
+
+.post-meta h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    line-height: 1.4;
+}
+
+.post-body {
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 1.8;
+    color: #e8dcc8cc;
+}
+
+.post-body h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #e8dcc8;
+    margin-top: 48px;
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+}
+
+.post-body h3 {
+    font-size: 14px;
+    font-weight: 500;
+    color: #e8dcc8;
+    margin-top: 32px;
+    margin-bottom: 12px;
+}
+
+.post-body p {
+    margin-bottom: 20px;
+}
+
+.post-body a {
+    color: #a8d8e8;
+    text-decoration: none;
+    border-bottom: 1px solid #a8d8e833;
+    transition: border-color 0.3s;
+}
+
+.post-body a:hover {
+    border-color: #a8d8e8;
+}
+
+.post-body code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    background: #e8dcc808;
+    padding: 2px 6px;
+    border-radius: 2px;
+}
+
+.post-body pre {
+    background: #e8dcc808;
+    padding: 20px;
+    margin: 24px 0;
+    overflow-x: auto;
+    font-size: 12px;
+    line-height: 1.6;
+    border-left: 2px solid #a8d8e833;
+}
+
+.post-body blockquote {
+    border-left: 2px solid #a8d8e833;
+    padding-left: 20px;
+    margin: 24px 0;
+    color: #e8dcc888;
+    font-style: italic;
+}
+
+.post-nav {
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid #e8dcc80d;
+}
+
+.post-nav a {
+    font-size: 12px;
+    color: #a8d8e8;
+    text-decoration: none;
+    letter-spacing: 3px;
+    border-bottom: 1px solid #a8d8e822;
+    padding-bottom: 2px;
+    transition: border-color 0.4s, color 0.4s;
+}
+
+.post-nav a:hover {
+    border-color: #a8d8e8aa;
+    color: #c8f0ff;
+}
+
+/* ── Empty state ── */
+
+.empty-state {
+    padding: 48px 0;
+    font-size: 13px;
+    font-weight: 300;
+    color: #4a453e;
+    letter-spacing: 1px;
+}
