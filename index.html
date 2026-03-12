@@ -353,7 +353,7 @@ function animate() {
     // Focus target: midpoint between chart center and live candle
     if (numCandles > 1) {
         const lastCX = ((numCandles - 1) / numCandles - 0.5) * spreadX;
-        const focusX = lastCX * 0.4;
+        const focusX = lastCX * 0.65;
         focusTarget.set(focusX * cosO, globalBreath * 0.3, -focusX * sinO);
         controls.target.lerp(focusTarget, 0.015);
     }
