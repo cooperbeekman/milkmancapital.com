@@ -233,14 +233,22 @@ scene.fog = new THREE.FogExp2(0x000000, 0.01);
 const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 2000);
 camera.position.set(0, 0, 100);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+const isMobile = innerWidth < 768;
+
+const renderer = new THREE.WebGLRenderer({ antialias: !isMobile, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile ? 2 : 3));
 renderer.setSize(innerWidth, innerHeight);
 document.body.appendChild(renderer.domElement);
+
+if (isMobile) camera.position.set(0, 0, 75);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.autoRotate = true;
 controls.autoRotateSpeed = 2.0;
+controls.minDistance = isMobile ? 35 : 25;
+controls.maxDistance = isMobile ? 140 : 300;
+controls.enablePan = false;
 
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
@@ -350,12 +358,13 @@ function animate() {
     const sinO = Math.sin(orbitAngle);
     const globalBreath = Math.sin(time * 0.33) * breathAmt;
 
-    // Focus target: midpoint between chart center and live candle
+    // Focus target: between chart center and live candle (closer on mobile)
     if (numCandles > 1) {
         const lastCX = ((numCandles - 1) / numCandles - 0.5) * spreadX;
-        const focusX = lastCX * 0.4;
+        const focusBias = isMobile ? 0.75 : 0.4;
+        const focusX = lastCX * focusBias;
         focusTarget.set(focusX * cosO, globalBreath * 0.3, -focusX * sinO);
-        controls.target.lerp(focusTarget, 0.015);
+        controls.target.lerp(focusTarget, isMobile ? 0.025 : 0.015);
     }
 
     controls.update();
