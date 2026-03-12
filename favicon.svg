@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Green (bull) candle -->
+  <rect x="6" y="4" width="1" height="24" fill="#00ff66" opacity="0.6"/>
+  <rect x="3" y="10" width="7" height="12" rx="1" fill="#00ff66"/>
+  <!-- Red (bear) candle -->
+  <rect x="22" y="4" width="1" height="24" fill="#ff4444" opacity="0.6"/>
+  <rect x="19" y="8" width="7" height="14" rx="1" fill="#ff4444"/>
+</svg>
