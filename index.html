@@ -318,7 +318,6 @@ const focusTarget = new THREE.Vector3();
 
 // ── Live price interpolation for zero-lag feel ───────────────────
 let displayPrice = 0;
-let priceVelocity = 0;
 
 // ── Animation Loop ─────────────────────────────────────────────────
 const clock = new THREE.Clock();
@@ -362,12 +361,10 @@ function animate() {
         return;
     }
 
-    // Smoothly interpolate display price toward latest with momentum
+    // Chase latest price — fast direct interpolation, no overshoot
     if (displayPrice === 0 && latestPrice > 0) displayPrice = latestPrice;
     if (latestPrice > 0) {
-        const priceDiff = latestPrice - displayPrice;
-        priceVelocity = priceVelocity * 0.7 + priceDiff * 0.3;
-        displayPrice += priceVelocity;
+        displayPrice += (latestPrice - displayPrice) * 0.5;
     }
 
     // Price range for normalization
@@ -415,31 +412,47 @@ function animate() {
             const cN = (effectiveClose - pMid) / pRange;
             const hN = (effectiveHigh - pMid) / pRange;
             const lN = (effectiveLow - pMid) / pRange;
-            const bodyLo = bull ? oN : cN;
-            const bodyHi = bull ? cN : oN;
+            const bodyLo = Math.min(oN, cN);
+            const bodyHi = Math.max(oN, cN);
 
-            // Particle layout: 76% body, 24% wick
-            const bodyCount = Math.floor(perC * 0.76);
-            const isBody = li < bodyCount;
-            const frac = isBody
-                ? li / bodyCount
-                : (li - bodyCount) / Math.max(perC - bodyCount, 1);
-            const rawY = isBody
-                ? (bodyLo + frac * (bodyHi - bodyLo)) * scaleY
-                : (lN + frac * (hN - lN)) * scaleY;
+            // Particle layout: 70% body, 15% lower wick, 15% upper wick
+            const bodyCount = Math.floor(perC * 0.70);
+            const wickCount = perC - bodyCount;
+            const lowerWickN = Math.floor(wickCount * 0.5);
+            const upperWickN = wickCount - lowerWickN;
+
+            let rawY, isBody, frac;
+            if (li < bodyCount) {
+                // Body — distributed between bodyLo and bodyHi
+                isBody = true;
+                frac = li / bodyCount;
+                rawY = (bodyLo + frac * (bodyHi - bodyLo)) * scaleY;
+            } else if (li < bodyCount + lowerWickN) {
+                // Lower wick — from low to bottom of body
+                isBody = false;
+                frac = (li - bodyCount) / Math.max(lowerWickN - 1, 1);
+                rawY = (lN + frac * (bodyLo - lN)) * scaleY;
+            } else {
+                // Upper wick — from top of body to high
+                isBody = false;
+                frac = (li - bodyCount - lowerWickN) / Math.max(upperWickN - 1, 1);
+                rawY = (bodyHi + frac * (hN - bodyHi)) * scaleY;
+            }
 
             // Staggered breathing
             const phase = ci * 0.44;
             const bob = Math.sin(time * 0.52 + phase) * breathAmt * 0.65;
 
-            // Organic drift (amplified during flash)
+            // Drift — tighter on live candle for precise HF feel
             const seed = ci * 2.3999 + 7.13;
-            const dBody = driftAmt * (isBody ? 1.0 : 0.15) * expandFactor;
+            const liveDriftScale = isLive ? 0.6 : 1.0;
+            const dBase = driftAmt * liveDriftScale * expandFactor;
+            const dAmt = isBody ? dBase : dBase * 0.12;
             const jx = (Math.sin(li * 13.7 + seed + time * 0.8)  * 0.55
-                      + Math.sin(li *  5.1 + seed + time * 0.31) * 0.45) * dBody;
+                      + Math.sin(li *  5.1 + seed + time * 0.31) * 0.45) * dAmt;
             const jy = (Math.sin(li *  8.3 + seed + time * 0.57) * 0.5
-                      + Math.sin(li *  3.8 + seed + time * 1.1)  * 0.3) * dBody;
-            const jz =  Math.cos(li *  7.2 + seed + time * 0.43) * dBody * 0.85;
+                      + Math.sin(li *  3.8 + seed + time * 1.1)  * 0.3) * dAmt;
+            const jz =  Math.cos(li *  7.2 + seed + time * 0.43) * dAmt * 0.85;
 
             // World position + orbit rotation
             const wx = (ci / numCandles - 0.5) * spreadX + jx;
@@ -452,12 +465,12 @@ function animate() {
             const bodyCenter = (bodyLo + bodyHi) * 0.5 * scaleY;
             const distCenter = Math.abs(rawY - bodyCenter)
                              / (Math.max(bodyHi - bodyLo, 0.01) * scaleY);
-            const coreLit  = isBody ? 0.62 - distCenter * 0.28 : 0.30;
+            const coreLit  = isBody ? 0.62 - distCenter * 0.28 : 0.25;
             const iriShift = frac * 0.04 * (bull ? 1 : -1);
             const pulse    = Math.sin(time * 0.7 + phase + li * 0.003) * 0.08;
             color.setHSL(
                 baseHue + iriShift,
-                isBody ? 0.90 : 0.55,
+                isBody ? 0.90 : 0.45,
                 coreLit + pulse + flashIntensity * 0.4
             );
 
@@ -492,9 +505,9 @@ function animate() {
             color.setHSL(gHue, 0.96, gLit);
         }
 
-        // Lerp — live candle snaps fast, historical candles drift smoothly
-        const isLiveCandle = (i < candleN) && (Math.floor(i / perC) >= numCandles - 1 || Math.floor(i / perC) === numCandles - 1);
-        const lerpSpeed = isLiveCandle ? 0.35 : 0.1;
+        // Lerp — live candle near-instant, historical drift smoothly
+        const ciForLerp = i < candleN ? Math.min(Math.floor(i / perC), numCandles - 1) : -1;
+        const lerpSpeed = ciForLerp === numCandles - 1 ? 0.55 : 0.1;
         positions[i].lerp(target, lerpSpeed);
         dummy.position.copy(positions[i]);
         dummy.updateMatrix();
