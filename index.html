@@ -138,11 +138,13 @@ function processTick(price, timestamp) {
     const bucket = Math.floor(timestamp / CANDLE_MS) * CANDLE_MS;
 
     if (!liveCandle || liveCandle.t !== bucket) {
+        // Chain: new candle opens at previous candle's close to eliminate vertical gaps
+        const prevClose = liveCandle ? liveCandle.c : price;
         if (liveCandle) {
             candleHistory.push(liveCandle);
             if (candleHistory.length > 200) candleHistory.shift();
         }
-        liveCandle = { t: bucket, o: price, h: price, l: price, c: price };
+        liveCandle = { t: bucket, o: prevClose, h: Math.max(prevClose, price), l: Math.min(prevClose, price), c: price };
     } else {
         liveCandle.c = price;
         if (price > liveCandle.h) liveCandle.h = price;
