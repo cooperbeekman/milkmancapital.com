@@ -1,220 +1,393 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Milkman Capital</title>
-    <style>body { margin: 0; overflow: hidden; background: #000; }</style>
-    <script type="importmap">
-    {
-        "imports": {
-            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Milkman Capital</title>
+<style>
+    body { margin: 0; overflow: hidden; background: #000; }
+    #hud {
+        position: fixed;
+        top: 28px;
+        right: 32px;
+        font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+        text-align: right;
+        pointer-events: none;
+        user-select: none;
+        z-index: 10;
     }
-    </script>
+    #hud-pair {
+        font-size: 10px;
+        letter-spacing: 4px;
+        color: #444;
+        margin-bottom: 6px;
+    }
+    #hud-price {
+        font-size: 26px;
+        font-weight: 300;
+        color: #e8e8e8;
+        letter-spacing: 1px;
+    }
+    #hud-change {
+        font-size: 11px;
+        letter-spacing: 1px;
+        margin-top: 4px;
+    }
+    #hud-tf {
+        font-size: 9px;
+        letter-spacing: 3px;
+        color: #333;
+        margin-top: 8px;
+    }
+    .up { color: #4f4; }
+    .dn { color: #f44; }
+    #brand {
+        position: fixed;
+        bottom: 28px;
+        left: 32px;
+        font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+        font-size: 10px;
+        letter-spacing: 6px;
+        color: #222;
+        pointer-events: none;
+        user-select: none;
+        z-index: 10;
+    }
+</style>
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+}
+</script>
 </head>
 <body>
-    <script type="module">
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-        // CONFIG
-        const COUNT = 20000;
-        const SPEED_MULT = 1;
-        const AUTO_SPIN = true;
+<div id="hud">
+    <div id="hud-pair">BTC / USDT</div>
+    <div id="hud-price">&middot;&middot;&middot;</div>
+    <div id="hud-change"></div>
+    <div id="hud-tf">30S CANDLES &middot; LIVE</div>
+</div>
 
-        // SETUP
-        const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x000000, 0.01);
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
-        camera.position.set(0, 0, 100);
+<div id="brand">MILKMAN CAPITAL</div>
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.autoRotate = AUTO_SPIN;
-        controls.autoRotateSpeed = 2.0;
+// ── Config ─────────────────────────────────────────────────────────
+const COUNT = 20000;
+const CANDLE_MS = 30000;
+const MAX_VISIBLE = 22;
 
-        // POST PROCESSING
-        const composer = new EffectComposer(renderer);
-        composer.addPass(new RenderPass(scene, camera));
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-        bloomPass.strength = 1.8; bloomPass.radius = 0.4; bloomPass.threshold = 0;
-        composer.addPass(bloomPass);
+// ── Bitcoin Data ───────────────────────────────────────────────────
+let candleHistory = [];
+let liveCandle = null;
+let latestPrice = 0;
+let firstPrice = 0;
 
-        // SWARM OBJECTS
-        const dummy = new THREE.Object3D();
-        const color = new THREE.Color();
-        const target = new THREE.Vector3();
-        const pColor = new THREE.Color();
+function processTick(price, timestamp) {
+    latestPrice = price;
+    if (!firstPrice) firstPrice = price;
 
-        // INSTANCED MESH
-        const geometry = new THREE.TetrahedronGeometry(0.25);
-        const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const bucket = Math.floor(timestamp / CANDLE_MS) * CANDLE_MS;
 
-        const instancedMesh = new THREE.InstancedMesh(geometry, material, COUNT);
-        instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-        scene.add(instancedMesh);
+    if (!liveCandle || liveCandle.t !== bucket) {
+        if (liveCandle) {
+            candleHistory.push(liveCandle);
+            if (candleHistory.length > 200) candleHistory.shift();
+        }
+        liveCandle = { t: bucket, o: price, h: price, l: price, c: price };
+    } else {
+        liveCandle.c = price;
+        if (price > liveCandle.h) liveCandle.h = price;
+        if (price < liveCandle.l) liveCandle.l = price;
+    }
+}
 
-        // DATA ARRAYS
-        const positions = [];
-        for(let i=0; i<COUNT; i++) {
-            positions.push(new THREE.Vector3((Math.random()-0.5)*100, (Math.random()-0.5)*100, (Math.random()-0.5)*100));
-            instancedMesh.setColorAt(i, color.setHex(0x00ff88));
+async function initData() {
+    try {
+        // Seed with 1-second klines (~11 min = ~22 thirty-second candles)
+        const res = await fetch(
+            'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1s&limit=660'
+        );
+        if (!res.ok) throw new Error('klines unavailable');
+        const klines = await res.json();
+
+        for (const k of klines) {
+            const t = k[0];
+            const o = parseFloat(k[1]);
+            const h = parseFloat(k[2]);
+            const l = parseFloat(k[3]);
+            const c = parseFloat(k[4]);
+            const bucket = Math.floor(t / CANDLE_MS) * CANDLE_MS;
+
+            if (!liveCandle || liveCandle.t !== bucket) {
+                if (liveCandle) candleHistory.push(liveCandle);
+                liveCandle = { t: bucket, o, h, l, c };
+            } else {
+                if (h > liveCandle.h) liveCandle.h = h;
+                if (l < liveCandle.l) liveCandle.l = l;
+                liveCandle.c = c;
+            }
+        }
+        if (candleHistory.length > 0) firstPrice = candleHistory[0].o;
+    } catch (e) {
+        console.warn('Historical seed failed, waiting for live data');
+    }
+    connectWS();
+}
+
+function connectWS() {
+    const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade');
+    ws.onmessage = (e) => {
+        const d = JSON.parse(e.data);
+        processTick(parseFloat(d.p), d.T);
+    };
+    ws.onerror = () => ws.close();
+    ws.onclose = () => setTimeout(connectWS, 3000);
+}
+
+initData();
+
+// ── Three.js Setup ─────────────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x000000, 0.01);
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 2000);
+camera.position.set(0, 0, 100);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 2.0;
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(
+    new THREE.Vector2(innerWidth, innerHeight), 1.5, 0.4, 0.85
+);
+bloom.strength = 1.8;
+bloom.radius = 0.4;
+bloom.threshold = 0;
+composer.addPass(bloom);
+
+// ── Instanced Mesh ─────────────────────────────────────────────────
+const dummy = new THREE.Object3D();
+const color = new THREE.Color();
+const target = new THREE.Vector3();
+
+const geo = new THREE.TetrahedronGeometry(0.25);
+const mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+const mesh = new THREE.InstancedMesh(geo, mat, COUNT);
+mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+scene.add(mesh);
+
+const positions = [];
+for (let i = 0; i < COUNT; i++) {
+    positions.push(new THREE.Vector3(
+        (Math.random() - 0.5) * 100,
+        (Math.random() - 0.5) * 100,
+        (Math.random() - 0.5) * 100
+    ));
+    mesh.setColorAt(i, color.setHex(0x00ff88));
+}
+
+// ── HUD ────────────────────────────────────────────────────────────
+const hudPrice = document.getElementById('hud-price');
+const hudChange = document.getElementById('hud-change');
+
+function updateHUD() {
+    if (latestPrice <= 0) return;
+    hudPrice.textContent = '$' + latestPrice.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+    if (firstPrice > 0) {
+        const pct = (latestPrice - firstPrice) / firstPrice * 100;
+        hudChange.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(3) + '%';
+        hudChange.className = pct >= 0 ? 'up' : 'dn';
+    }
+}
+
+// ── Visual Params ──────────────────────────────────────────────────
+const scaleY = 70;
+const spreadX = 160;
+const breathAmt = 3;
+const driftAmt = 1.2;
+const orbitSpd = 0.19;
+
+// ── Animation Loop ─────────────────────────────────────────────────
+const clock = new THREE.Clock();
+let frameCount = 0;
+
+function animate() {
+    requestAnimationFrame(animate);
+    clock.getDelta();
+    const time = clock.getElapsedTime();
+
+    controls.update();
+
+    // Visible candles
+    const all = [...candleHistory];
+    if (liveCandle) all.push(liveCandle);
+    const visible = all.slice(-MAX_VISIBLE);
+    const numCandles = visible.length;
+
+    if (numCandles === 0) {
+        composer.render();
+        return;
+    }
+
+    // Price range for normalization
+    let pMin = Infinity, pMax = -Infinity;
+    for (let k = 0; k < numCandles; k++) {
+        if (visible[k].l < pMin) pMin = visible[k].l;
+        if (visible[k].h > pMax) pMax = visible[k].h;
+    }
+    const pRange = pMax - pMin || 1;
+    const pMid = (pMax + pMin) * 0.5;
+
+    // Orbit
+    const orbitAngle = time * orbitSpd;
+    const cosO = Math.cos(orbitAngle);
+    const sinO = Math.sin(orbitAngle);
+    const globalBreath = Math.sin(time * 0.33) * breathAmt;
+
+    // Partition particles
+    const ribbonN = Math.floor(COUNT * 0.06);
+    const candleN = COUNT - ribbonN;
+    const perC = Math.max(Math.floor(candleN / numCandles), 1);
+
+    for (let i = 0; i < COUNT; i++) {
+
+        if (i < candleN) {
+            // ── Candle particles ───────────────────────────────────
+            let ci = Math.floor(i / perC);
+            if (ci >= numCandles) ci = numCandles - 1;
+            const li = i % perC;
+            const candle = visible[ci];
+
+            const bull = candle.c >= candle.o;
+
+            // Normalize OHLC to roughly [-0.5, 0.5]
+            const oN = (candle.o - pMid) / pRange;
+            const cN = (candle.c - pMid) / pRange;
+            const hN = (candle.h - pMid) / pRange;
+            const lN = (candle.l - pMid) / pRange;
+            const bodyLo = bull ? oN : cN;
+            const bodyHi = bull ? cN : oN;
+
+            // Particle layout: 76% body, 24% wick
+            const bodyCount = Math.floor(perC * 0.76);
+            const isBody = li < bodyCount;
+            const frac = isBody
+                ? li / bodyCount
+                : (li - bodyCount) / Math.max(perC - bodyCount, 1);
+            const rawY = isBody
+                ? (bodyLo + frac * (bodyHi - bodyLo)) * scaleY
+                : (lN + frac * (hN - lN)) * scaleY;
+
+            // Staggered breathing
+            const phase = ci * 0.44;
+            const bob = Math.sin(time * 0.52 + phase) * breathAmt * 0.65;
+
+            // Organic drift
+            const seed = ci * 2.3999 + 7.13;
+            const dBody = driftAmt * (isBody ? 1.0 : 0.15);
+            const jx = (Math.sin(li * 13.7 + seed + time * 0.8)  * 0.55
+                      + Math.sin(li *  5.1 + seed + time * 0.31) * 0.45) * dBody;
+            const jy = (Math.sin(li *  8.3 + seed + time * 0.57) * 0.5
+                      + Math.sin(li *  3.8 + seed + time * 1.1)  * 0.3) * dBody;
+            const jz =  Math.cos(li *  7.2 + seed + time * 0.43) * dBody * 0.85;
+
+            // World position + orbit rotation
+            const wx = (ci / numCandles - 0.5) * spreadX + jx;
+            const wy = rawY + bob + globalBreath + jy;
+            const wz = jz;
+            target.set(wx * cosO + wz * sinO, wy, -wx * sinO + wz * cosO);
+
+            // Color: emerald bull, crimson bear
+            const baseHue = bull ? 0.36 : 0.97;
+            const bodyCenter = (bodyLo + bodyHi) * 0.5 * scaleY;
+            const distCenter = Math.abs(rawY - bodyCenter)
+                             / (Math.max(bodyHi - bodyLo, 0.01) * scaleY);
+            const coreLit  = isBody ? 0.62 - distCenter * 0.28 : 0.30;
+            const iriShift = frac * 0.04 * (bull ? 1 : -1);
+            const pulse    = Math.sin(time * 0.7 + phase + li * 0.003) * 0.08;
+            color.setHSL(
+                baseHue + iriShift,
+                isBody ? 0.90 : 0.55,
+                coreLit + pulse
+            );
+
+        } else {
+            // ── Gold trend ribbon ──────────────────────────────────
+            const mi = i - candleN;
+            const mf = mi / ribbonN;
+            const mxRaw = (mf - 0.5) * spreadX;
+
+            // Interpolate closing prices across visible candles
+            const candlePos = mf * (numCandles - 1);
+            const idx0 = Math.floor(candlePos);
+            const idx1 = Math.min(idx0 + 1, numCandles - 1);
+            const t2 = candlePos - idx0;
+            const c0 = (visible[idx0].c - pMid) / pRange;
+            const c1 = (visible[idx1].c - pMid) / pRange;
+            const interpY = (c0 + (c1 - c0) * t2) * scaleY;
+
+            const ribT = (mi % 14) / 14;
+            const ribZ = (ribT - 0.5) * 4.0;
+            const wave = Math.sin(mf * 12.56 + time * 1.4) * 0.55;
+            const wy = interpY + wave + globalBreath;
+
+            target.set(
+                mxRaw * cosO + ribZ * sinO,
+                wy,
+                -mxRaw * sinO + ribZ * cosO
+            );
+
+            const gHue = 0.105 + Math.sin(time * 0.5 + mf * 6.28) * 0.04;
+            const gLit = 0.56 + Math.sin(time * 1.1 + ribT * 6.28) * 0.18;
+            color.setHSL(gHue, 0.96, gLit);
         }
 
-        // CONTROL STUBS
-        const PARAMS = {"candles":22.2,"scaleY":70,"spreadX":160,"scroll":0.325,"breath":3,"drift":1.2,"orbit":0.19};
-        const addControl = (id, label, min, max, val) => {
-            return PARAMS[id] !== undefined ? PARAMS[id] : val;
-        };
-        const setInfo = () => {};
-        const annotate = () => {};
+        // Smooth lerp to target
+        positions[i].lerp(target, 0.1);
+        dummy.position.copy(positions[i]);
+        dummy.updateMatrix();
+        mesh.setMatrixAt(i, dummy.matrix);
+        mesh.setColorAt(i, color);
+    }
 
-        // ANIMATION LOOP
-        const clock = new THREE.Clock();
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.instanceColor.needsUpdate = true;
 
-        function animate() {
-            requestAnimationFrame(animate);
-            const delta = clock.getDelta();
-            const time = clock.getElapsedTime() * SPEED_MULT;
+    // Throttle HUD updates
+    frameCount++;
+    if (frameCount % 10 === 0) updateHUD();
 
-            if(material.uniforms && material.uniforms.uTime) {
-                material.uniforms.uTime.value = time;
-            }
+    composer.render();
+}
 
-            controls.update();
+animate();
 
-            const count = COUNT;
-            for(let i=0; i<COUNT; i++) {
-                 const numCandles = Math.floor(addControl("candles", "Num Candles",   4,   32,  16));
-                 const scaleY     = addControl("scaleY",   "Price Scale",    10,  70,  32);
-                 const spreadX    = addControl("spreadX",  "Chart Width",    30,  160, 100);
-                 const scrollSpd  = addControl("scroll",   "Scroll Speed",   0,   2.5, 0.3);
-                 const breathAmt  = addControl("breath",   "Breath Depth",   0,   8,   3.0);
-                 const driftAmt   = addControl("drift",    "Particle Drift", 0,   3,   1.2);
-                 const orbitSpd   = addControl("orbit",    "Orbit Speed",    0,   1,   0.18);
-
-                 const ribbonN  = Math.floor(count * 0.06);
-                 const candleN  = count - ribbonN;
-                 const perC     = Math.floor(candleN / numCandles);
-
-                 const orbitAngle = time * orbitSpd;
-                 const cosO = Math.cos(orbitAngle);
-                 const sinO = Math.sin(orbitAngle);
-
-                 const globalBreath = Math.sin(time * 0.33) * breathAmt;
-
-                 if (i < candleN) {
-
-                   const ci   = Math.floor(i / perC);
-                   const li   = i % perC;
-                   const sid  = ci + Math.floor(time * scrollSpd);
-                   const seed = sid * 2.3999 + 7.13;
-
-                   const trend  = Math.sin(sid * 0.13) * 0.42
-                                + Math.sin(sid * 0.047 + 1.9) * 0.22;
-                   const vol    = (Math.sin(seed * 3.7) * 0.5 + 0.5) * 0.2 + 0.06;
-                   const move   = Math.sin(seed * 5.31 + 2.0);
-                   const bodyH  = (Math.sin(seed * 2.1) * 0.5 + 0.5) * vol;
-
-                   const openP  = trend - bodyH * 0.5;
-                   const closeP = trend + bodyH * 0.5 * Math.sign(move);
-                   const bull   = closeP > openP;
-                   const bodyLo = bull ? openP  : closeP;
-                   const bodyHi = bull ? closeP : openP;
-                   const highP  = bodyHi + (Math.abs(Math.sin(seed * 4.9))) * vol * 0.7;
-                   const lowP   = bodyLo - (Math.abs(Math.sin(seed * 6.3)))  * vol * 0.7;
-
-                   const bodyN  = Math.floor(perC * 0.76);
-                   const isBody = li < bodyN;
-                   const frac   = isBody
-                     ? li / bodyN
-                     : (li - bodyN) / Math.max(perC - bodyN, 1);
-                   const rawY   = isBody
-                     ? (bodyLo + frac * (bodyHi - bodyLo)) * scaleY
-                     : (lowP   + frac * (highP  - lowP))   * scaleY;
-
-                   const phase  = ci * 0.44;
-                   const bob    = Math.sin(time * 0.52 + phase) * breathAmt * 0.65;
-
-                   const dBody  = driftAmt * (isBody ? 1.0 : 0.15);
-                   const jx = (Math.sin(li * 13.7 + seed + time * 0.8)  * 0.55
-                             + Math.sin(li *  5.1 + seed + time * 0.31) * 0.45) * dBody;
-                   const jy = (Math.sin(li *  8.3 + seed + time * 0.57) * 0.5
-                             + Math.sin(li *  3.8 + seed + time * 1.1)  * 0.3) * dBody;
-                   const jz =  Math.cos(li *  7.2 + seed + time * 0.43)  * dBody * 0.85;
-
-                   const wx = (ci / numCandles - 0.5) * spreadX + jx;
-                   const wy = rawY + bob + globalBreath + jy;
-                   const wz = jz;
-
-                   target.set(wx * cosO + wz * sinO, wy, -wx * sinO + wz * cosO);
-
-                   const baseHue    = bull ? 0.36 : 0.97;
-                   const bodyCenter = (bodyLo + bodyHi) * 0.5 * scaleY;
-                   const distCenter = Math.abs(rawY - bodyCenter) / (Math.max(bodyHi - bodyLo, 0.01) * scaleY);
-                   const coreLit    = isBody ? 0.62 - distCenter * 0.28 : 0.30;
-                   const iriShift   = frac * 0.04 * (bull ? 1 : -1);
-                   const pulse      = Math.sin(time * 0.7 + phase + li * 0.003) * 0.08;
-                   color.setHSL(
-                     baseHue + iriShift,
-                     isBody ? 0.90 : 0.55,
-                     coreLit + pulse
-                   );
-
-                 } else {
-
-                   const mi     = i - candleN;
-                   const mf     = mi / ribbonN;
-                   const mSid   = mf * numCandles + time * scrollSpd;
-                   const mxRaw  = (mf - 0.5) * spreadX;
-                   const mTrend = (Math.sin(mSid * 0.13) * 0.42
-                                + Math.sin(mSid * 0.047 + 1.9) * 0.22) * scaleY;
-                   const ribT   = (mi % 14) / 14;
-                   const ribZ   = (ribT - 0.5) * 4.0;
-                   const wave   = Math.sin(mf * 12.56 + time * 1.4) * 0.55;
-                   const wy     = mTrend + wave + globalBreath;
-                   const wz     = ribZ;
-
-                   target.set(
-                     mxRaw * cosO + wz * sinO,
-                     wy,
-                     -mxRaw * sinO + wz * cosO
-                   );
-
-                   const gHue = 0.105 + Math.sin(time * 0.5 + mf * 6.28) * 0.04;
-                   const gLit = 0.56 + Math.sin(time * 1.1 + ribT * 6.28) * 0.18;
-                   color.setHSL(gHue, 0.96, gLit);
-                 }
-
-                 // LERP & UPDATE
-                 positions[i].lerp(target, 0.1);
-                 dummy.position.copy(positions[i]);
-                 dummy.updateMatrix();
-                 instancedMesh.setMatrixAt(i, dummy.matrix);
-                 instancedMesh.setColorAt(i, color);
-            }
-            instancedMesh.instanceMatrix.needsUpdate = true;
-            instancedMesh.instanceColor.needsUpdate = true;
-
-            composer.render();
-        }
-        animate();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
-        });
-    </script>
+// ── Resize ─────────────────────────────────────────────────────────
+addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+    composer.setSize(innerWidth, innerHeight);
+});
+</script>
 </body>
 </html>
