@@ -17,7 +17,6 @@
         font-size: 12px;
     }
 
-    /* ── Function strip ───────────────────────────────────────── */
     .fn {
         display: flex;
         align-items: stretch;
@@ -41,11 +40,11 @@
 
     .fn-item:hover {
         background: #111;
-        color: #ff8800;
+        color: #00ff66;
     }
 
     .fn-item.active {
-        background: #ff8800;
+        background: #00ff66;
         color: #000;
         font-weight: 700;
     }
@@ -58,17 +57,15 @@
         padding: 0 14px;
         font-size: 10px;
         letter-spacing: 2px;
-        color: #ff8800;
+        color: #00ff66;
     }
 
-    /* ── Amber rule ───────────────────────────────────────────── */
     .rule {
         height: 1px;
-        background: #ff8800;
+        background: #00ff66;
         opacity: 0.6;
     }
 
-    /* ── Command line ─────────────────────────────────────────── */
     .cmd {
         padding: 8px 16px;
         font-size: 11px;
@@ -79,10 +76,9 @@
         gap: 8px;
     }
 
-    .cmd .prompt { color: #ff8800; }
+    .cmd .prompt { color: #00ff66; }
     .cmd .path { color: #888; }
 
-    /* ── Table ─────────────────────────────────────────────────── */
     .tbl {
         flex: 1;
         overflow-y: auto;
@@ -104,7 +100,7 @@
         font-size: 9px;
         font-weight: 600;
         letter-spacing: 2px;
-        color: #ff8800;
+        color: #00ff66;
     }
 
     .tbl-row {
@@ -118,7 +114,7 @@
     }
 
     .tbl-row:hover {
-        background: #0a0a00;
+        background: #001a00;
     }
 
     .tbl-row:hover .r-title { color: #fff; }
@@ -130,40 +126,12 @@
         align-items: center;
     }
 
-    .r-idx {
-        font-size: 10px;
-        color: #2a2a2a;
-    }
+    .r-idx { font-size: 10px; color: #2a2a2a; }
+    .r-date { font-size: 10px; letter-spacing: 1px; color: #666; }
+    .r-type { font-size: 9px; letter-spacing: 1px; color: #00ff66; opacity: 0.5; }
+    .r-title { font-size: 12px; color: #aaa; transition: color 0.15s; }
+    .r-open { font-size: 9px; letter-spacing: 1px; color: #00ff66; opacity: 0; transition: opacity 0.15s; justify-content: flex-end; }
 
-    .r-date {
-        font-size: 10px;
-        letter-spacing: 1px;
-        color: #666;
-    }
-
-    .r-type {
-        font-size: 9px;
-        letter-spacing: 1px;
-        color: #ff8800;
-        opacity: 0.5;
-    }
-
-    .r-title {
-        font-size: 12px;
-        color: #aaa;
-        transition: color 0.15s;
-    }
-
-    .r-open {
-        font-size: 9px;
-        letter-spacing: 1px;
-        color: #00ff66;
-        opacity: 0;
-        transition: opacity 0.15s;
-        justify-content: flex-end;
-    }
-
-    /* ── Bottom bar ───────────────────────────────────────────── */
     .bot {
         display: flex;
         align-items: center;
@@ -174,11 +142,7 @@
         flex-shrink: 0;
     }
 
-    .bot span {
-        font-size: 9px;
-        letter-spacing: 2px;
-        color: #333;
-    }
+    .bot span { font-size: 9px; letter-spacing: 2px; color: #333; }
 
     .bot .dot {
         display: inline-block;
@@ -190,10 +154,9 @@
         box-shadow: 0 0 4px rgba(0,255,100,0.4);
     }
 
-    .bot .amber { color: #ff8800; opacity: 0.4; }
+    .bot .grn { color: #00ff66; opacity: 0.4; }
     .bot-fill { flex: 1; }
 
-    /* ── Responsive ────────────────────────────────────────────── */
     @media (max-width: 600px) {
         .tbl-head, .tbl-row {
             grid-template-columns: 36px 80px 1fr;
@@ -250,9 +213,9 @@
 <div class="bot">
     <span><span class="dot"></span>ONLINE</span>
     <span>ROWS 2</span>
-    <span class="amber">SORTED DATE DESC</span>
+    <span class="grn">SORTED DATE DESC</span>
     <span class="bot-fill"></span>
-    <span class="amber">MM CAPITAL</span>
+    <span class="grn">MM CAPITAL</span>
 </div>
 
 <script>

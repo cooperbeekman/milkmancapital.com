@@ -17,7 +17,6 @@
         font-size: 12px;
     }
 
-    /* ── Function strip ───────────────────────────────────────── */
     .fn {
         display: flex;
         align-items: stretch;
@@ -39,13 +38,10 @@
         cursor: pointer;
     }
 
-    .fn-item:hover {
-        background: #111;
-        color: #ff8800;
-    }
+    .fn-item:hover { background: #111; color: #00ff66; }
 
     .fn-item.active {
-        background: #ff8800;
+        background: #00ff66;
         color: #000;
         font-weight: 700;
     }
@@ -58,16 +54,11 @@
         padding: 0 14px;
         font-size: 10px;
         letter-spacing: 2px;
-        color: #ff8800;
+        color: #00ff66;
     }
 
-    .rule {
-        height: 1px;
-        background: #ff8800;
-        opacity: 0.6;
-    }
+    .rule { height: 1px; background: #00ff66; opacity: 0.6; }
 
-    /* ── Command line ─────────────────────────────────────────── */
     .cmd {
         padding: 8px 16px;
         font-size: 11px;
@@ -78,10 +69,9 @@
         gap: 8px;
     }
 
-    .cmd .prompt { color: #ff8800; }
+    .cmd .prompt { color: #00ff66; }
     .cmd .path { color: #888; }
 
-    /* ── Main ──────────────────────────────────────────────────── */
     .main {
         flex: 1;
         display: flex;
@@ -91,26 +81,61 @@
 
     .form-wrap {
         width: 100%;
-        max-width: 340px;
+        max-width: 380px;
         padding: 0 24px;
     }
 
-    /* ── Terminal output lines ─────────────────────────────────── */
-    .out {
+    /* ── Boot sequence ─────────────────────────────────────────── */
+    .boot {
         font-size: 11px;
-        color: #444;
-        margin-bottom: 24px;
-        line-height: 1.8;
+        margin-bottom: 28px;
+        line-height: 2;
     }
 
-    .out .g { color: #00ff66; }
-    .out .a { color: #ff8800; }
-    .out .w { color: #888; }
-
-    /* ── Fields ────────────────────────────────────────────────── */
-    .field {
-        margin-bottom: 20px;
+    .boot-line {
+        opacity: 0;
+        transform: translateY(4px);
     }
+
+    .boot-line.show {
+        opacity: 1;
+        transform: translateY(0);
+        transition: opacity 0.3s, transform 0.3s;
+    }
+
+    .boot-line .g { color: #00ff66; }
+    .boot-line .w { color: #666; }
+    .boot-line .v { color: #aaa; }
+    .boot-line .d { color: #333; }
+
+    .scan-bar {
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #00ff66, transparent);
+        margin: 4px 0;
+        opacity: 0;
+        transform: scaleX(0);
+        transform-origin: left;
+    }
+
+    .scan-bar.show {
+        opacity: 0.5;
+        transform: scaleX(1);
+        transition: transform 0.6s ease-out, opacity 0.3s;
+    }
+
+    /* ── Form (hidden until boot completes) ────────────────────── */
+    .form-area {
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity 0.5s, transform 0.5s;
+    }
+
+    .form-area.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .field { margin-bottom: 20px; }
 
     .field-label {
         font-size: 9px;
@@ -126,7 +151,7 @@
     }
 
     .field-input .gt {
-        color: #ff8800;
+        color: #00ff66;
         font-size: 13px;
         flex-shrink: 0;
     }
@@ -145,15 +170,9 @@
         transition: border-color 0.2s;
     }
 
-    .field-input input:focus {
-        border-color: #ff8800;
-    }
+    .field-input input:focus { border-color: #00ff66; }
+    .field-input input::placeholder { color: #1a1a1a; }
 
-    .field-input input::placeholder {
-        color: #1a1a1a;
-    }
-
-    /* ── Button ────────────────────────────────────────────────── */
     .btn {
         width: 100%;
         background: none;
@@ -169,12 +188,11 @@
     }
 
     .btn:hover {
-        background: #ff8800;
-        border-color: #ff8800;
+        background: #00ff66;
+        border-color: #00ff66;
         color: #000;
     }
 
-    /* ── Error ─────────────────────────────────────────────────── */
     .err {
         margin-top: 20px;
         font-size: 10px;
@@ -207,7 +225,6 @@
         margin-left: auto;
     }
 
-    /* ── Bottom bar ───────────────────────────────────────────── */
     .bot {
         display: flex;
         align-items: center;
@@ -218,11 +235,7 @@
         flex-shrink: 0;
     }
 
-    .bot span {
-        font-size: 9px;
-        letter-spacing: 2px;
-        color: #333;
-    }
+    .bot span { font-size: 9px; letter-spacing: 2px; color: #333; }
 
     .bot .dot {
         display: inline-block;
@@ -234,7 +247,7 @@
         box-shadow: 0 0 4px rgba(0,255,100,0.4);
     }
 
-    .bot .amber { color: #ff8800; opacity: 0.4; }
+    .bot .grn { color: #00ff66; opacity: 0.4; }
     .bot-fill { flex: 1; }
 
     @media (max-width: 480px) {
@@ -260,33 +273,39 @@
 
 <div class="main">
     <div class="form-wrap">
-        <div class="out">
-            <span class="g">&gt;</span> <span class="w">connection established</span><br>
-            <span class="g">&gt;</span> <span class="w">protocol</span> <span class="a">TLS 1.3</span> <span class="w">cipher</span> <span class="a">AES-256</span><br>
-            <span class="g">&gt;</span> <span class="w">awaiting credentials_</span>
+        <div class="boot" id="boot">
+            <div class="boot-line"><span class="g">&gt;</span> <span class="w">initializing secure connection...</span></div>
+            <div class="boot-line"><span class="g">&gt;</span> <span class="w">protocol</span> <span class="v">HTTPS/2</span> <span class="d">|</span> <span class="w">cipher</span> <span class="v">AES-256-GCM</span></div>
+            <div class="boot-line"><span class="g">&gt;</span> <span class="w">handshake</span> <span class="v">TLS 1.3</span> <span class="d">............</span> <span class="g">OK</span></div>
+            <div class="scan-bar"></div>
+            <div class="boot-line"><span class="g">&gt;</span> <span class="w">session</span> <span class="v" id="sid">________</span></div>
+            <div class="boot-line"><span class="g">&gt;</span> <span class="w">endpoint</span> <span class="v">auth.mmcapital</span> <span class="d">|</span> <span class="w">latency</span> <span class="v" id="lat">--</span><span class="v">ms</span></div>
+            <div class="boot-line"><span class="g">&gt;</span> <span class="g">ready — awaiting credentials_</span></div>
         </div>
 
-        <div class="field">
-            <div class="field-label">USERNAME</div>
-            <div class="field-input">
-                <span class="gt">&gt;</span>
-                <input type="text" id="username" placeholder="enter username" autocomplete="off" spellcheck="false">
+        <div class="form-area" id="formArea">
+            <div class="field">
+                <div class="field-label">EMAIL</div>
+                <div class="field-input">
+                    <span class="gt">&gt;</span>
+                    <input type="email" id="email" placeholder="enter email" autocomplete="off" spellcheck="false">
+                </div>
             </div>
-        </div>
-        <div class="field">
-            <div class="field-label">PASSWORD</div>
-            <div class="field-input">
-                <span class="gt">&gt;</span>
-                <input type="password" id="password" placeholder="enter password" autocomplete="off">
+            <div class="field">
+                <div class="field-label">PASSWORD</div>
+                <div class="field-input">
+                    <span class="gt">&gt;</span>
+                    <input type="password" id="password" placeholder="enter password" autocomplete="off">
+                </div>
             </div>
-        </div>
-        <button class="btn" id="loginBtn">AUTHENTICATE</button>
+            <button class="btn" id="loginBtn">AUTHENTICATE</button>
 
-        <div class="err" id="errMsg">
-            <div class="err-line">
-                <span class="err-dot"></span>
-                ACCESS DENIED
-                <span class="err-code">ERR 401</span>
+            <div class="err" id="errMsg">
+                <div class="err-line">
+                    <span class="err-dot"></span>
+                    ACCESS DENIED
+                    <span class="err-code">ERR 401</span>
+                </div>
             </div>
         </div>
     </div>
@@ -296,11 +315,12 @@
     <span><span class="dot"></span>ENCRYPTED</span>
     <span>ATTEMPTS <span id="att">0</span></span>
     <span class="bot-fill"></span>
-    <span class="amber">MM CAPITAL</span>
+    <span class="grn">MM CAPITAL</span>
 </div>
 
 <script>
     var att = 0;
+
     function tick() {
         var n = new Date();
         document.getElementById('clock').textContent =
@@ -310,14 +330,48 @@
     }
     tick(); setInterval(tick, 1000);
 
+    // Random hex session id
+    function hexId() {
+        var s = '', c = '0123456789abcdef';
+        for (var i = 0; i < 12; i++) s += c[Math.floor(Math.random() * 16)];
+        return s;
+    }
+
+    // Boot sequence animation
+    (function() {
+        var lines = document.querySelectorAll('#boot .boot-line');
+        var scan = document.querySelector('#boot .scan-bar');
+        var delays = [200, 500, 900, 1200, 1600, 2100];
+
+        lines.forEach(function(el, i) {
+            setTimeout(function() {
+                el.classList.add('show');
+                // Fill in dynamic values as they appear
+                if (i === 3) document.getElementById('sid').textContent = hexId();
+                if (i === 4) document.getElementById('lat').textContent = (Math.floor(Math.random() * 14) + 3);
+            }, delays[i] || (delays[delays.length - 1] + (i - delays.length + 1) * 400));
+        });
+
+        // Scan bar
+        setTimeout(function() { scan.classList.add('show'); }, 1100);
+
+        // Show form after boot
+        setTimeout(function() {
+            document.getElementById('formArea').classList.add('show');
+            document.getElementById('email').focus();
+        }, 2500);
+    })();
+
     document.getElementById('loginBtn').addEventListener('click', function() {
         att++;
         document.getElementById('att').textContent = att;
+        document.getElementById('sid').textContent = hexId();
         var e = document.getElementById('errMsg');
         e.classList.remove('visible');
         setTimeout(function() { e.classList.add('visible'); }, 50);
     });
-    document.getElementById('username').addEventListener('keydown', function(e) {
+
+    document.getElementById('email').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') document.getElementById('loginBtn').click();
     });
     document.getElementById('password').addEventListener('keydown', function(e) {
