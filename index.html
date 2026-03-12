@@ -41,6 +41,22 @@
     }
     .up { color: #4f4; }
     .dn { color: #f44; }
+    #price-tag {
+        position: fixed;
+        font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 1px;
+        padding: 3px 10px;
+        pointer-events: none;
+        user-select: none;
+        z-index: 10;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.5s;
+    }
+    #price-tag.tag-up { background: #0a2a0a; color: #4f4; border: 1px solid rgba(68,255,68,0.25); }
+    #price-tag.tag-dn { background: #2a0a0a; color: #f44; border: 1px solid rgba(255,68,68,0.25); }
     #brand {
         position: fixed;
         bottom: 28px;
@@ -72,6 +88,7 @@
     <div id="hud-tf">30S CANDLES &middot; LIVE</div>
 </div>
 
+<div id="price-tag"></div>
 <div id="brand">MILKMAN CAPITAL</div>
 
 <script type="module">
@@ -220,6 +237,25 @@ for (let i = 0; i < COUNT; i++) {
     ));
     mesh.setColorAt(i, color.setHex(0x00ff88));
 }
+
+// ── Price Line ─────────────────────────────────────────────────────
+const LINE_SEGMENTS = 80;
+const linePts = new Float32Array((LINE_SEGMENTS + 1) * 3);
+const lineGeo = new THREE.BufferGeometry();
+lineGeo.setAttribute('position', new THREE.BufferAttribute(linePts, 3));
+const lineMat = new THREE.LineDashedMaterial({
+    color: 0x888888,
+    dashSize: 1.5,
+    gapSize: 1.0,
+    transparent: true,
+    opacity: 0.35
+});
+const priceLine = new THREE.Line(lineGeo, lineMat);
+priceLine.frustumCulled = false;
+scene.add(priceLine);
+
+const projVec = new THREE.Vector3();
+const priceTag = document.getElementById('price-tag');
 
 // ── HUD ────────────────────────────────────────────────────────────
 const hudPrice = document.getElementById('hud-price');
@@ -390,6 +426,57 @@ function animate() {
 
     mesh.instanceMatrix.needsUpdate = true;
     mesh.instanceColor.needsUpdate = true;
+
+    // ── Price line across chart at current price ──────────────────
+    if (latestPrice > 0 && numCandles > 0) {
+        const priceNorm = (latestPrice - pMid) / pRange;
+        const priceY = priceNorm * scaleY + globalBreath;
+        const bull = liveCandle && latestPrice >= liveCandle.o;
+
+        lineMat.color.setHex(bull ? 0x44ff44 : 0xff4444);
+        lineMat.opacity = 0.3;
+
+        // Line from left edge past rightmost candle to the right
+        const xStart = -spreadX * 0.55;
+        const xEnd = spreadX * 0.6;
+
+        for (let s = 0; s <= LINE_SEGMENTS; s++) {
+            const t2 = s / LINE_SEGMENTS;
+            const lx = xStart + (xEnd - xStart) * t2;
+            const idx = s * 3;
+            linePts[idx]     = lx * cosO;
+            linePts[idx + 1] = priceY;
+            linePts[idx + 2] = -lx * sinO;
+        }
+        lineGeo.attributes.position.needsUpdate = true;
+        priceLine.computeLineDistances();
+
+        // Project right endpoint to screen for price tag
+        projVec.set(xEnd * cosO, priceY, -xEnd * sinO);
+        projVec.project(camera);
+
+        // Only show tag if it's in front of the camera
+        if (projVec.z < 1) {
+            const sx = (projVec.x * 0.5 + 0.5) * innerWidth;
+            const sy = (-projVec.y * 0.5 + 0.5) * innerHeight;
+            priceTag.style.left = sx + 4 + 'px';
+            priceTag.style.top = sy + 'px';
+            priceTag.style.transform = 'translateY(-50%)';
+            priceTag.textContent = '$' + latestPrice.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            priceTag.className = bull ? 'tag-up' : 'tag-dn';
+            priceTag.style.opacity = '1';
+        } else {
+            priceTag.style.opacity = '0';
+        }
+
+        priceLine.visible = true;
+    } else {
+        priceLine.visible = false;
+        priceTag.style.opacity = '0';
+    }
 
     // Throttle HUD updates
     frameCount++;
