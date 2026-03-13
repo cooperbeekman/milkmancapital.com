@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The End of QT Is Not What You Think – MM CAPITAL</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        background: #000;
+        color: #c5c8c6;
+        font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        font-size: 12px;
+    }
+
+    .fn {
+        display: flex;
+        align-items: stretch;
+        border-bottom: 1px solid #1a1a1a;
+        height: 28px;
+        flex-shrink: 0;
+    }
+
+    .fn-item {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 14px;
+        font-size: 10px;
+        letter-spacing: 1px;
+        color: #555;
+        text-decoration: none;
+        border-right: 1px solid #1a1a1a;
+        transition: background 0.1s, color 0.1s;
+        cursor: pointer;
+    }
+
+    .fn-item:hover { background: #111; color: #00ff66; }
+    .fn-item.active { background: #00ff66; color: #000; font-weight: 700; }
+    .fn-fill { flex: 1; border-right: none; }
+
+    .fn-clock {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 14px;
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: #00ff66;
+    }
+
+    .rule { height: 1px; background: #00ff66; opacity: 0.6; }
+
+    .cmd {
+        padding: 8px 16px;
+        font-size: 11px;
+        color: #555;
+        border-bottom: 1px solid #111;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    .cmd .prompt { color: #00ff66; }
+    .cmd .path { color: #888; }
+
+    .toolbar {
+        display: flex;
+        align-items: center;
+        padding: 8px 16px;
+        border-bottom: 1px solid #111;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    .toolbar .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 14px;
+        font-size: 9px;
+        font-family: inherit;
+        letter-spacing: 1px;
+        border: 1px solid #222;
+        background: transparent;
+        color: #888;
+        cursor: pointer;
+        transition: all 0.15s;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .toolbar .btn:hover { border-color: #00ff66; color: #00ff66; background: #001a00; }
+    .toolbar .btn-accent { border-color: #00ff66; color: #00ff66; }
+    .toolbar .btn-accent:hover { background: #00ff66; color: #000; }
+    .toolbar-fill { flex: 1; }
+
+    .content {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .article {
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 48px 24px 120px;
+    }
+
+    .article-meta {
+        margin-bottom: 40px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid #111;
+    }
+
+    .article-date {
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: #00ff66;
+        opacity: 0.5;
+        margin-bottom: 12px;
+    }
+
+    .article-title {
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: #e0e0e0;
+        line-height: 1.4;
+    }
+
+    .article-body {
+        font-size: 13px;
+        line-height: 1.85;
+        color: #999;
+    }
+
+    .article-body p { margin-bottom: 20px; }
+
+    .article-body h2 {
+        font-size: 14px;
+        font-weight: 700;
+        color: #ccc;
+        margin-top: 40px;
+        margin-bottom: 16px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+
+    .article-body strong { color: #ccc; font-weight: 600; }
+    .article-body em { color: #aaa; font-style: italic; }
+
+    .article-nav {
+        margin-top: 60px;
+        padding-top: 24px;
+        border-top: 1px solid #111;
+    }
+
+    .article-nav a {
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: #00ff66;
+        text-decoration: none;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+
+    .article-nav a:hover { opacity: 1; }
+
+    .bot {
+        display: flex;
+        align-items: center;
+        height: 24px;
+        border-top: 1px solid #1a1a1a;
+        padding: 0 16px;
+        gap: 16px;
+        flex-shrink: 0;
+    }
+
+    .bot span { font-size: 9px; letter-spacing: 2px; color: #333; }
+
+    .bot .dot {
+        display: inline-block;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: #00ff66;
+        margin-right: 6px;
+        box-shadow: 0 0 4px rgba(0,255,100,0.4);
+    }
+
+    .bot .grn { color: #00ff66; opacity: 0.4; }
+    .bot-fill { flex: 1; }
+
+    @media (max-width: 600px) {
+        .article { padding: 32px 16px 80px; }
+        .article-title { font-size: 17px; }
+        .article-body { font-size: 12px; }
+        .cmd { display: none; }
+        .toolbar { padding: 6px 10px; gap: 6px; }
+        .toolbar .btn { padding: 4px 10px; font-size: 8px; }
+    }
+
+    @media (min-width: 1200px) {
+        body { font-size: 14px; }
+        .fn { height: 36px; }
+        .fn-item { padding: 0 20px; font-size: 12px; }
+        .fn-clock { font-size: 12px; }
+        .cmd { padding: 12px 32px; font-size: 13px; }
+        .toolbar { padding: 10px 32px; }
+        .toolbar .btn { padding: 6px 16px; font-size: 10px; }
+        .article { max-width: 780px; padding: 56px 32px 140px; }
+        .article-date { font-size: 11px; }
+        .article-title { font-size: 24px; }
+        .article-body { font-size: 14px; line-height: 1.9; }
+        .article-body h2 { font-size: 16px; }
+        .bot { height: 32px; padding: 0 32px; }
+        .bot span { font-size: 11px; }
+    }
+
+    @media (min-width: 1600px) {
+        body { font-size: 15px; }
+        .fn { height: 40px; }
+        .fn-item { padding: 0 24px; font-size: 13px; }
+        .fn-clock { font-size: 13px; }
+        .cmd { padding: 14px 48px; font-size: 14px; }
+        .toolbar { padding: 12px 48px; }
+        .toolbar .btn { padding: 7px 18px; font-size: 11px; }
+        .article { max-width: 860px; padding: 64px 40px 160px; }
+        .article-date { font-size: 12px; }
+        .article-title { font-size: 26px; }
+        .article-body { font-size: 15px; }
+        .article-body h2 { font-size: 17px; }
+        .bot { height: 36px; padding: 0 48px; }
+        .bot span { font-size: 12px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="fn">
+    <a class="fn-item active" href="./">RESEARCH</a>
+    <a class="fn-item" href="../">HOME</a>
+    <a class="fn-item" href="../login.html">LOGIN</a>
+    <span class="fn-item fn-fill"></span>
+    <span class="fn-clock" id="clock">00:00:00</span>
+</div>
+<div class="rule"></div>
+
+<div class="cmd">
+    <span class="prompt">MM CAPITAL</span>
+    <span class="path">/ RESEARCH / THE END OF QT IS NOT WHAT YOU THINK</span>
+</div>
+
+<div class="toolbar">
+    <a class="btn" href="./">&larr; BACK</a>
+    <span class="toolbar-fill"></span>
+    <a class="btn btn-accent" href="end-of-qt-nov-2025.pdf" download>DOWNLOAD PDF &darr;</a>
+    <button class="btn btn-accent" onclick="shareArticle()">SHARE &uarr;</button>
+</div>
+
+<div class="content">
+    <article class="article">
+        <div class="article-meta">
+            <div class="article-date">2025.11.17</div>
+            <h1 class="article-title">The End of QT Is Not What You Think</h1>
+        </div>
+
+        <div class="article-body">
+            <h2>What the Fed Is Actually Doing</h2>
+
+            <p>For three years, the Fed has been running off its balance sheet. Every month, Treasury securities and mortgage backed securities mature and the Fed just lets them disappear. No reinvestment. No replacement. Just steady contraction of the money supply. We're talking roughly $1.4 trillion drained from the system since mid 2023.</p>
+
+            <p>Someone's been slowly opening a drain on the entire banking system. Borrowing gets expensive. Scarcity builds. Institutions compete for scarce dollars. This has been the dominant force shaping financial conditions for three straight years.</p>
+
+            <p>On December 1st, the Fed stops opening that drain.</p>
+
+            <p>That's it. That's what happens. The active process of balance sheet runoff ends. The Fed will let maturing Treasuries roll back into the market and reinvest principal payments back into Treasury bills. The pool isn't getting refilled. The tap just stops running.</p>
+
+            <p>This is bullish relative to what we've had. You're removing a contractionary force. That matters. But here's what it's not. It's not quantitative easing. It's not money printing. It's not the kind of aggressive liquidity injection that powered markets from 2009 to 2021.</p>
+
+            <h2>The Treasury Dynamic Nobody's Talking About</h2>
+
+            <p>While the Fed ends QT, the Treasury Department is doing something different. It's still unloading mortgage backed securities into the market.</p>
+
+            <p>Starting December 1st, Treasury sells approximately $10 billion monthly in MBS while reinvesting MBS principal into Treasury bills. Sounds like it balances out. But the mechanics matter.</p>
+
+            <p>When Treasury sells MBS and uses proceeds to buy bills, it's not injecting broad based liquidity into the financial system. The dollars get redirected into short term funding markets and Treasury operations. Money goes toward government spending, bill payments, strategic reserve management. Not toward stock portfolios or crypto speculation.</p>
+
+            <p>This creates something interesting. Short term funding conditions ease dramatically. Reverse repo facility usage normalizes. Banks have abundant cash for overnight lending. Good signals. But longer duration asset classes like stocks and crypto see less direct benefit because the liquidity being injected has different destinations than traditional QE.</p>
+
+            <p>You can have perfectly stable short term money markets while long term risk assets struggle. The distribution of liquidity matters as much as the total amount.</p>
+
+            <h2>Why This Isn't 2018</h2>
+
+            <p>The Fed's previous QT cycle ran 2017 to 2019. Gradual. Predictable. Announced years in advance. Executed methodically. Markets adjusted in real time. When stress appeared, the Fed had space to react.</p>
+
+            <p>This time is structurally different. The Fed is ending QT because the plumbing in the financial system actually broke. Overnight lending rates spiked. Emergency liquidity facilities saw usage patterns that hadn't occurred since 2008. The Fed's Standing Repo Facility went parabolic. This isn't a scheduled pivot. This is damage control.</p>
+
+            <p>The system got stressed because the Fed was draining the balance sheet while Treasury was running down its General Account. When that account got near zero, less government spending dollars were floating around to offset the Fed's contractions. The system got mechanically squeezed.</p>
+
+            <p>This matters because the Fed isn't ending QT because it wants to. It's ending QT because it has to. That's less bullish than a planned policy reversal. It signals reactive governance, not confident forward guidance.</p>
+
+            <h2>The Real Inflection Point Is Probably Two Months Away</h2>
+
+            <p>Most market participants are missing this. Ending QT is not the same as beginning active liquidity injection. It's stopping a contraction. Supportive, but not the same as expansion.</p>
+
+            <p>The actual game changer happens when the Fed begins buying Treasury bills in the open market. That's different from what's happening December 1st. Right now, the Fed is just letting maturing bills roll back without selling them or draining them. When the Fed starts actively purchasing bills to inject money into the system, that's when liquidity genuinely expands beyond just stopping the bleeding.</p>
+
+            <p>This probably happens around February to March 2026. That's when you get actual monetary expansion, not just cessation of monetary contraction.</p>
+
+            <p>There are three phases in play.</p>
+
+            <p><strong>Phase one</strong> happens December 1st. The drain stops. Financial conditions stabilize. This is table setting. Important but not explosive.</p>
+
+            <p><strong>Phase two,</strong> probably early 2026, is when the Fed shifts from passive management to active purchasing. Money supply actually expands. The tailwind becomes meaningful for risk assets.</p>
+
+            <p><strong>Phase three,</strong> which the market is pricing in but may not happen, is full blown QE with the Fed buying longer duration Treasuries, potentially MBS again, potentially other assets. The moonshot scenario.</p>
+
+            <p>Markets are currently priced as if phases two and three are imminent. But phase one is where we're going. The real pivot point is still down the road.</p>
+
+            <h2>What This Means for Equities</h2>
+
+            <p>Stocks have been under pressure partly because of certainty around QT. Clear contractionary force everyone could predict. A headwind you could model and price in.</p>
+
+            <p>Ending QT removes that certainty and that headwind. But it doesn't automatically create a tailwind. Not when you're in this phase one holding pattern where liquidity is stable but not yet expanding.</p>
+
+            <p>For equities, the bullish case is straightforward. Less financial stress. Easier credit conditions. Potentially a Fed rate cut in December. Knowledge that expansion is coming in a few months. This supports higher valuations on growth stocks and risk appetite generally.</p>
+
+            <p>But the bull case isn't automatic. If long term Treasury yields keep rising because the market prices in structural inflation or fiscal concerns, you get an environment where short term stress eases but longer duration equity multiples compress. Plausible given current fiscal deficits and inflation dynamics.</p>
+
+            <p>Equities verdict: moderately bullish near term on QT ending. But the real sustained rally probably depends on seeing actual Fed bill purchases early next year. Until then, expect noise and consolidation.</p>
+
+            <h2>The Crypto Setup Is More Interesting</h2>
+
+            <p>Cryptocurrency is extremely sensitive to shifts in system wide liquidity and risk appetite. During QT, crypto got crushed. When money is scarce and borrowing is expensive, speculative capital gets wiped out. Retail traders can't leverage up. Institutions deleverage. The marginal buyer disappears.</p>
+
+            <p>Crypto is non yielding. In a high rate, tight liquidity environment, it makes no sense relative to parking money in Treasury bills earning 5.5 percent. But the moment conditions ease and risk appetite returns, crypto becomes attractive precisely because it has no yield and can appreciate unboundedly. Risk on asset, not cash flow asset.</p>
+
+            <p>When QT pauses or reverses, crypto typically has explosive rallies. Three to six months of upside performance is common.</p>
+
+            <p>Current setup is interesting because Bitcoin is already trading near all time highs. The crypto space is broadly bullish on potential pro crypto regulatory environment from the incoming administration. The tailwind from ending QT hits at a moment when sentiment is already constructive. Typically a setup for continued momentum.</p>
+
+            <p>Same caveat as equities though. Real driver of sustained crypto rally is seeing actual Fed purchasing power coming into the system in early 2026. Short term, the bounce is real and justified. Longer term, you're waiting for the Fed to shift from passive to active mode.</p>
+
+            <h2>What to Watch</h2>
+
+            <p><strong>Treasury yield spreads.</strong> If short term rates hold higher than long term rates, markets are concerned about structural issues. You're not going to see equities rally sustainably. If that normalizes with short end falling, that's your signal liquidity is working as expected.</p>
+
+            <p><strong>Reverse repo facility and bank reserve levels.</strong> Technical indicators of how much cash is actually circulating and whether banks are parking excess cash at the Fed. When that normalizes and banks start deploying cash productively, that signals liquidity is working and risk appetite is returning.</p>
+
+            <p><strong>The Fed's December meeting.</strong> Any guidance on open market operations. If Powell signals the Fed is planning to begin buying bills in early 2026, that's confirmation phase two is coming soon. Major catalyst for both equities and crypto.</p>
+
+            <h2>Where We Actually Are</h2>
+
+            <p>The end of QT is genuinely significant. It removes a contractionary force that's been weighing on markets for three years. Net positive. Financial conditions ease. Stress in the plumbing abates. This is material.</p>
+
+            <p>But it's not the pivot point most people think it is. Most people look at QT ending and see it as the green light for sustained risk on rally. Reality is probably more nuanced. You're removing a drag. That's not the same as applying the accelerator.</p>
+
+            <p>Real acceleration probably starts early 2026 when the Fed shifts to actually buying bills. That's when monetary policy genuinely flips from contractionary to expansionary. That's when you get systemic liquidity expansion that typically fuels significant rallies in equities and especially crypto.</p>
+
+            <p>Until then, you're in a phase where financial conditions improve but don't meaningfully expand. Supportive but not explosive. The volatility, the positioning, the price action over the next two months is going to be noisy. You're not in full QE tailwind mode yet.</p>
+
+            <p>Don't mistake the end of the headwind for the beginning of the tailwind. These are different things. One is about to happen. The other is probably still coming.</p>
+        </div>
+
+        <nav class="article-nav">
+            <a href="./">&larr; ALL RESEARCH</a>
+        </nav>
+    </article>
+</div>
+
+<div class="bot">
+    <span><span class="dot"></span>ONLINE</span>
+    <span>2025.11.17</span>
+    <span class="grn">RESEARCH</span>
+    <span class="bot-fill"></span>
+    <span class="grn">MM CAPITAL</span>
+</div>
+
+<script>
+    function tick() {
+        var n = new Date();
+        document.getElementById('clock').textContent =
+            String(n.getUTCHours()).padStart(2,'0') + ':' +
+            String(n.getUTCMinutes()).padStart(2,'0') + ':' +
+            String(n.getUTCSeconds()).padStart(2,'0') + ' UTC';
+    }
+    tick(); setInterval(tick, 1000);
+
+    function shareArticle() {
+        var data = { title: document.title, url: window.location.href };
+        if (navigator.share) {
+            navigator.share(data);
+        } else {
+            navigator.clipboard.writeText(window.location.href).then(function() {
+                var btn = document.querySelector('[onclick="shareArticle()"]');
+                var orig = btn.textContent;
+                btn.textContent = 'COPIED';
+                setTimeout(function() { btn.innerHTML = 'SHARE &uarr;'; }, 1500);
+            });
+        }
+    }
+</script>
+
+</body>
+</html>

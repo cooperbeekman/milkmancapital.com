@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strait Update and Outlook – MM CAPITAL</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        background: #000;
+        color: #c5c8c6;
+        font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        font-size: 12px;
+    }
+
+    .fn {
+        display: flex;
+        align-items: stretch;
+        border-bottom: 1px solid #1a1a1a;
+        height: 28px;
+        flex-shrink: 0;
+    }
+
+    .fn-item {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 14px;
+        font-size: 10px;
+        letter-spacing: 1px;
+        color: #555;
+        text-decoration: none;
+        border-right: 1px solid #1a1a1a;
+        transition: background 0.1s, color 0.1s;
+        cursor: pointer;
+    }
+
+    .fn-item:hover { background: #111; color: #00ff66; }
+    .fn-item.active { background: #00ff66; color: #000; font-weight: 700; }
+    .fn-fill { flex: 1; border-right: none; }
+
+    .fn-clock {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 14px;
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: #00ff66;
+    }
+
+    .rule { height: 1px; background: #00ff66; opacity: 0.6; }
+
+    .cmd {
+        padding: 8px 16px;
+        font-size: 11px;
+        color: #555;
+        border-bottom: 1px solid #111;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    .cmd .prompt { color: #00ff66; }
+    .cmd .path { color: #888; }
+
+    .toolbar {
+        display: flex;
+        align-items: center;
+        padding: 8px 16px;
+        border-bottom: 1px solid #111;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    .toolbar .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 14px;
+        font-size: 9px;
+        font-family: inherit;
+        letter-spacing: 1px;
+        border: 1px solid #222;
+        background: transparent;
+        color: #888;
+        cursor: pointer;
+        transition: all 0.15s;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .toolbar .btn:hover { border-color: #00ff66; color: #00ff66; background: #001a00; }
+    .toolbar .btn-accent { border-color: #00ff66; color: #00ff66; }
+    .toolbar .btn-accent:hover { background: #00ff66; color: #000; }
+    .toolbar-fill { flex: 1; }
+
+    .content {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .article {
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 48px 24px 120px;
+    }
+
+    .article-meta {
+        margin-bottom: 40px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid #111;
+    }
+
+    .article-date {
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: #00ff66;
+        opacity: 0.5;
+        margin-bottom: 12px;
+    }
+
+    .article-title {
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: #e0e0e0;
+        line-height: 1.4;
+    }
+
+    .article-body {
+        font-size: 13px;
+        line-height: 1.85;
+        color: #999;
+    }
+
+    .article-body p {
+        margin-bottom: 20px;
+    }
+
+    .article-body h2 {
+        font-size: 14px;
+        font-weight: 700;
+        color: #ccc;
+        margin-top: 40px;
+        margin-bottom: 16px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+
+    .article-body strong {
+        color: #ccc;
+        font-weight: 600;
+    }
+
+    .article-body em {
+        color: #aaa;
+        font-style: italic;
+    }
+
+    .article-nav {
+        margin-top: 60px;
+        padding-top: 24px;
+        border-top: 1px solid #111;
+    }
+
+    .article-nav a {
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: #00ff66;
+        text-decoration: none;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+
+    .article-nav a:hover { opacity: 1; }
+
+    .bot {
+        display: flex;
+        align-items: center;
+        height: 24px;
+        border-top: 1px solid #1a1a1a;
+        padding: 0 16px;
+        gap: 16px;
+        flex-shrink: 0;
+    }
+
+    .bot span { font-size: 9px; letter-spacing: 2px; color: #333; }
+
+    .bot .dot {
+        display: inline-block;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: #00ff66;
+        margin-right: 6px;
+        box-shadow: 0 0 4px rgba(0,255,100,0.4);
+    }
+
+    .bot .grn { color: #00ff66; opacity: 0.4; }
+    .bot-fill { flex: 1; }
+
+    @media (max-width: 600px) {
+        .article { padding: 32px 16px 80px; }
+        .article-title { font-size: 17px; }
+        .article-body { font-size: 12px; }
+        .cmd { display: none; }
+        .toolbar { padding: 6px 10px; gap: 6px; }
+        .toolbar .btn { padding: 4px 10px; font-size: 8px; }
+    }
+
+    @media (min-width: 1200px) {
+        body { font-size: 14px; }
+        .fn { height: 36px; }
+        .fn-item { padding: 0 20px; font-size: 12px; }
+        .fn-clock { font-size: 12px; }
+        .cmd { padding: 12px 32px; font-size: 13px; }
+        .toolbar { padding: 10px 32px; }
+        .toolbar .btn { padding: 6px 16px; font-size: 10px; }
+        .article { max-width: 780px; padding: 56px 32px 140px; }
+        .article-date { font-size: 11px; }
+        .article-title { font-size: 24px; }
+        .article-body { font-size: 14px; line-height: 1.9; }
+        .article-body h2 { font-size: 16px; }
+        .bot { height: 32px; padding: 0 32px; }
+        .bot span { font-size: 11px; }
+    }
+
+    @media (min-width: 1600px) {
+        body { font-size: 15px; }
+        .fn { height: 40px; }
+        .fn-item { padding: 0 24px; font-size: 13px; }
+        .fn-clock { font-size: 13px; }
+        .cmd { padding: 14px 48px; font-size: 14px; }
+        .toolbar { padding: 12px 48px; }
+        .toolbar .btn { padding: 7px 18px; font-size: 11px; }
+        .article { max-width: 860px; padding: 64px 40px 160px; }
+        .article-date { font-size: 12px; }
+        .article-title { font-size: 26px; }
+        .article-body { font-size: 15px; }
+        .article-body h2 { font-size: 17px; }
+        .bot { height: 36px; padding: 0 48px; }
+        .bot span { font-size: 12px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="fn">
+    <a class="fn-item active" href="./">RESEARCH</a>
+    <a class="fn-item" href="../">HOME</a>
+    <a class="fn-item" href="../login.html">LOGIN</a>
+    <span class="fn-item fn-fill"></span>
+    <span class="fn-clock" id="clock">00:00:00</span>
+</div>
+<div class="rule"></div>
+
+<div class="cmd">
+    <span class="prompt">MM CAPITAL</span>
+    <span class="path">/ RESEARCH / STRAIT UPDATE AND OUTLOOK</span>
+</div>
+
+<div class="toolbar">
+    <a class="btn" href="./">&larr; BACK</a>
+    <span class="toolbar-fill"></span>
+    <a class="btn btn-accent" href="strait-update-mar-2026.pdf" download>DOWNLOAD PDF &darr;</a>
+    <button class="btn btn-accent" onclick="shareArticle()">SHARE &uarr;</button>
+</div>
+
+<div class="content">
+    <article class="article">
+        <div class="article-meta">
+            <div class="article-date">2026.03.12</div>
+            <h1 class="article-title">Strait Update and Outlook</h1>
+        </div>
+
+        <div class="article-body">
+            <p>The Strait of Hormuz is still 21 miles wide. As of March 12 it remains effectively closed to commercial traffic.</p>
+
+            <p>Tanker transits haven't meaningfully recovered. Normal daily average of 138 to 151 vessels is down to 2 to 7 commercial transits per day. Iranian shadow fleet eastbound to China holding steady at 1.3 to 2.2 million barrels per day. Everything else is rerouted, idled, or escorted in tiny test convoys. The just-in-time global energy supply chain is being liquidated in real time.</p>
+
+            <h2>First Principles</h2>
+
+            <p>Start from first principles. Oil is not a commodity. It's civilization's metabolic rate expressed in barrels per day. Close the Strait and you don't raise the price of a good, you interrupt the bloodstream. Cardiac arrest is the correct analogy. Price shock is the downstream symptom, not the cause.</p>
+
+            <p>Flows before the crisis: 15.8 to 21.4 mbpd crude plus Qatar LNG volumes accounted for 20 to 21 percent of all global seaborne energy trade. US SPR total inventory sits at 415.4 million barrels as of the March 11 DOE report. After the IEA coordinated 400 mbbl release, US share 172 mbbl drawn over 120 days, the remaining operational buffer is 243 million barrels. Sustainable draw rate tops out at 4.4 mbpd. Still less than five days of normal Hormuz throughput. You cannot pipeline barrels through a minefield. The umbrella while drowning metaphor has not aged well.</p>
+
+            <h2>Timeline</h2>
+
+            <p><strong>Feb 28:</strong> US-Israeli strikes eliminate Khamenei. Mojtaba assumes power and vows closure until reparations. <strong>March 1 to 2:</strong> first confirmed tanker hits. <strong>March 3:</strong> mining campaign confirmed, UK Defence Secretary public statement, US Navy has now sunk 23 Iranian mine-laying vessels. <strong>March 5 to 8:</strong> Iran continues shadow fleet exports east while commercial traffic collapses to zero on most days. <strong>March 9 to 11:</strong> US-led escort operations begin, first three escorted convoys totaling 1.2 mbpd transit under naval air cover, two vessels still sustain projectile damage, mines drifting outside the channel push insurance premia to infinity. <strong>March 12:</strong> traffic still single digits. Iranian regime claiming partial reopening for propaganda while physically blocking non-Chinese tankers. Qatar at zero exports from Ras Laffan and Mesaieed, longest streak on record.</p>
+
+            <h2>The Asymmetry</h2>
+
+            <p>The asymmetry is sharper than ever. Iran is not cutting its own revenue. It's cutting everyone else's while selling 1.3 to 2.2 mbpd of discounted crude to China. Chinese total stocks, SPR plus commercial, equate to 80 to 130 days of imports at current consumption, with high-end strategic estimates approaching 200 days when hoarding since late 2025 is factored in. Beijing is watching with the composure of someone who brought their own lunch.</p>
+
+            <p>Asia absorbs 90 percent of the physical crude loss. Europe is double-hammered: oil plus the full Qatar LNG outage, force majeure still in place, TTF up 65 to 92 percent since Feb 28. US gasoline national average climbed from 3.48 on Feb 28 to 4.12 today. Still below the 5-dollar Easter red line the administration ran on, but the slope is steep and summer driving season hasn't started. Domestic political clock is ticking loud.</p>
+
+            <p>Bypass math still doesn't close. Saudi East-West pipeline at full 7 mbpd nameplate, practical export via Yanbu 4.2 to 4.8 mbpd after domestic needs. UAE ADCOP 1.5 to 1.8 mbpd. Total bypass ceiling 6 to 8.5 mbpd against a 12 to 15 mbpd shortfall. Kuwait precautionary cuts now at 180 kbd. Storage tanks filling. VLCC rates at 420 to 480k per day. Saudi and UAE loading every available hull for the Red Sea route.</p>
+
+            <h2>Fertilizer and LNG</h2>
+
+            <p>Fertilizer channel is offline at the worst possible moment. Gulf urea and ammonia exports, 1.2 to 1.5 million tons per month and 43 to 49 percent of global seaborne trade, remain zero. Urea up 34 percent since March 1. Ammonia up 41 percent. This is no longer a 2026 story. It's already baked into 2027 crop economics and CPI.</p>
+
+            <p>LNG: Qatar zero shipments for 12 straight days. Europe has no bypass. Asia, which takes 90-plus percent of Qatar-UAE volumes, is tightening too.</p>
+
+            <h2>Actors and Incentive Maps</h2>
+
+            <p><strong>Iran</strong> needs a visible victory for internal legitimacy. Shadow fleet cash flow continues. Naval mine-clearing superiority is demonstrated, 23 vessels sunk, US-UK-Australia minesweeper flotilla operational. Time horizon still weeks, not months.</p>
+
+            <p><strong>US</strong> binding constraint is gasoline trajectory, not absolute level. Public statements have shifted from swift resolution to escorts-plus-off-ramp language. Every day above 4.10 raises the political temperature. Revealed time preference is crystal clear.</p>
+
+            <p><strong>Gulf producers</strong> running VLCCs at record rates, storage economics eroding, output curtailments spreading. Dominant strategy: maximize bypass and support any coalition that reopens the strait.</p>
+
+            <p><strong>China</strong> has zero urgency. Discounted Iranian barrels plus 80 to 130-day buffer. Their incentive is let the West bleed while buying cheap. Luke Gromen's frame is more relevant now than ever: another 30 days is catastrophic for Western supply chains. For China it's merely expensive.</p>
+
+            <h2>Resolution Path</h2>
+
+            <p>Resolution path has tightened. Naval superiority is proven. Iranian revenue is protected. US political clock and Gulf storage pain converge. Goldman's updated model now sees the severe disruption window at 18 to 25 days with meaningful traffic resuming by late March to mid-April under base case. That window still aligns with every major player's incentive.</p>
+
+            <h2>Positioning</h2>
+
+            <p><strong>Energy and energy services:</strong> sweet spot still 80 to 90 for grinding higher. Anything sustained above 100 accelerates the structural bull. Even post-resolution mean reversion to 65 to 85 leaves the multi-year thesis intact. US shale plateau, OPEC discipline, 2014 to 2020 capex famine unchanged. Eric Nuttall's call has been validated in real time.</p>
+
+            <p><strong>Fertilizers</strong> are the most asymmetric trade right now. Urea up 34 percent, planting season disruption locked in. 2027 CPI bleed is no longer theoretical.</p>
+
+            <p><strong>LNG:</strong> Europe exposure acute. TTF volatility extreme. No quick fix.</p>
+
+            <p><strong>Defense:</strong> shooting war has locked multi-year spending. Industrial base rerating is structural.</p>
+
+            <p><strong>Russia:</strong> pure windfall, unaffected exports at elevated prices.</p>
+
+            <p><strong>Macro equities:</strong> the shock front-loaded the fear, already in prices. Historical precedent from 1973, 1990, and the recent Red Sea episode shows a 4 to 6 week relief rally once the chokepoint clears. Markets price the resolution before physical flows normalize. SPR replenishment, demand destruction cooling inflation, and policy backdrop all support a classic V-shaped recovery in risk assets.</p>
+
+            <h2>The Deeper Point</h2>
+
+            <p>This crisis didn't break a healthy system. It revealed the system as it actually is. 21 miles of water controlling 21 percent of global seaborne energy was always a single point of failure. Physical traders had the reference points all along. Mainstream media incentives remain keep the fear clicks coming. The divergence between their coverage and the physical trackers is itself alpha.</p>
+
+            <p>Fear trade in oil is now the most crowded position on the board. Consensus at peak fear is capitulation waiting to happen.</p>
+
+            <h2>Scenarios</h2>
+
+            <p><strong>Base case, 65 to 75 percent probability:</strong> naval escorts plus face-saving diplomatic off-ramp restore meaningful traffic by late March to mid-April. Oil overshoots 110 to 130 short term, already at 105 to 108 Brent, then mean reverts hard toward 65 to 85. Short covering plus SPR buyback tailwind plus inflation relief equals relief rally in equities within the historical 4 to 6 week window.</p>
+
+            <p><strong>Tail risk, 25 to 35 percent:</strong> prolonged mining beyond another 30 days leads to sustained 100-plus oil, stagflation, fertilizer cascade into 2027. China's buffer versus the West's 45-day effective position is the cleanest expression of that divergence. Price the tail. Don't overweight it.</p>
+
+            <p>Every player's incentives still converge inside the same window. The downside was front-loaded. The resolution path is being telegraphed daily.</p>
+        </div>
+
+        <nav class="article-nav">
+            <a href="./">&larr; ALL RESEARCH</a>
+        </nav>
+    </article>
+</div>
+
+<div class="bot">
+    <span><span class="dot"></span>ONLINE</span>
+    <span>2026.03.12</span>
+    <span class="grn">RESEARCH</span>
+    <span class="bot-fill"></span>
+    <span class="grn">MM CAPITAL</span>
+</div>
+
+<script>
+    function tick() {
+        var n = new Date();
+        document.getElementById('clock').textContent =
+            String(n.getUTCHours()).padStart(2,'0') + ':' +
+            String(n.getUTCMinutes()).padStart(2,'0') + ':' +
+            String(n.getUTCSeconds()).padStart(2,'0') + ' UTC';
+    }
+    tick(); setInterval(tick, 1000);
+
+    function shareArticle() {
+        var data = { title: document.title, url: window.location.href };
+        if (navigator.share) {
+            navigator.share(data);
+        } else {
+            navigator.clipboard.writeText(window.location.href).then(function() {
+                var btn = document.querySelector('[onclick="shareArticle()"]');
+                var orig = btn.textContent;
+                btn.textContent = 'COPIED';
+                setTimeout(function() { btn.innerHTML = 'SHARE &uarr;'; }, 1500);
+            });
+        }
+    }
+</script>
+
+</body>
+</html>

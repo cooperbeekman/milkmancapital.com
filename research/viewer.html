@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Research – MM CAPITAL</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        background: #000;
+        color: #c5c8c6;
+        font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+        height: 100vh;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        font-size: 12px;
+        overflow: hidden;
+    }
+
+    .fn {
+        display: flex;
+        align-items: stretch;
+        border-bottom: 1px solid #1a1a1a;
+        height: 28px;
+        flex-shrink: 0;
+    }
+
+    .fn-item {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 14px;
+        font-size: 10px;
+        letter-spacing: 1px;
+        color: #555;
+        text-decoration: none;
+        border-right: 1px solid #1a1a1a;
+        transition: background 0.1s, color 0.1s;
+        cursor: pointer;
+    }
+
+    .fn-item:hover {
+        background: #111;
+        color: #00ff66;
+    }
+
+    .fn-item.active {
+        background: #00ff66;
+        color: #000;
+        font-weight: 700;
+    }
+
+    .fn-fill { flex: 1; border-right: none; }
+
+    .fn-clock {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 14px;
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: #00ff66;
+    }
+
+    .rule {
+        height: 1px;
+        background: #00ff66;
+        opacity: 0.6;
+        flex-shrink: 0;
+    }
+
+    .cmd {
+        padding: 8px 16px;
+        font-size: 11px;
+        color: #555;
+        border-bottom: 1px solid #111;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    .cmd .prompt { color: #00ff66; }
+    .cmd .path { color: #888; }
+
+    .toolbar {
+        display: flex;
+        align-items: center;
+        padding: 6px 16px;
+        border-bottom: 1px solid #111;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    .toolbar .doc-title {
+        font-size: 11px;
+        color: #aaa;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .toolbar .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        font-size: 9px;
+        font-family: inherit;
+        letter-spacing: 1px;
+        border: 1px solid #222;
+        background: transparent;
+        color: #888;
+        cursor: pointer;
+        transition: all 0.15s;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .toolbar .btn:hover {
+        border-color: #00ff66;
+        color: #00ff66;
+        background: #001a00;
+    }
+
+    .toolbar .btn-download {
+        border-color: #00ff66;
+        color: #00ff66;
+    }
+
+    .toolbar .btn-download:hover {
+        background: #00ff66;
+        color: #000;
+    }
+
+    .page-nav {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 10px;
+        color: #555;
+        letter-spacing: 1px;
+    }
+
+    .page-nav button {
+        background: none;
+        border: 1px solid #222;
+        color: #888;
+        font-family: inherit;
+        font-size: 10px;
+        padding: 2px 8px;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .page-nav button:hover {
+        border-color: #00ff66;
+        color: #00ff66;
+    }
+
+    .page-nav button:disabled {
+        opacity: 0.2;
+        cursor: default;
+    }
+
+    .page-nav .page-info {
+        color: #666;
+        min-width: 60px;
+        text-align: center;
+    }
+
+    .viewer {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        background: #0a0a0a;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .viewer canvas {
+        display: block;
+        margin: 8px auto;
+        max-width: 100%;
+        height: auto !important;
+    }
+
+    .loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 40px;
+        color: #555;
+        font-size: 11px;
+        letter-spacing: 1px;
+        width: 100%;
+        flex: 1;
+    }
+
+    .loading .spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #111;
+        border-top-color: #00ff66;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .error-msg {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        padding: 40px;
+        color: #555;
+        font-size: 12px;
+        text-align: center;
+        width: 100%;
+        flex: 1;
+    }
+
+    .error-msg .msg {
+        color: #888;
+        line-height: 1.6;
+    }
+
+    .error-msg .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 20px;
+        font-size: 10px;
+        font-family: inherit;
+        letter-spacing: 1px;
+        border: 1px solid #00ff66;
+        background: transparent;
+        color: #00ff66;
+        cursor: pointer;
+        transition: all 0.15s;
+        text-decoration: none;
+    }
+
+    .error-msg .btn:hover {
+        background: #00ff66;
+        color: #000;
+    }
+
+    .bot {
+        display: flex;
+        align-items: center;
+        height: 24px;
+        border-top: 1px solid #1a1a1a;
+        padding: 0 16px;
+        gap: 16px;
+        flex-shrink: 0;
+    }
+
+    .bot span { font-size: 9px; letter-spacing: 2px; color: #333; }
+
+    .bot .dot {
+        display: inline-block;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: #00ff66;
+        margin-right: 6px;
+        box-shadow: 0 0 4px rgba(0,255,100,0.4);
+    }
+
+    .bot .grn { color: #00ff66; opacity: 0.4; }
+    .bot-fill { flex: 1; }
+
+    @media (max-width: 600px) {
+        .cmd { display: none; }
+        .toolbar { padding: 6px 10px; gap: 6px; }
+        .toolbar .doc-title { font-size: 10px; }
+        .toolbar .btn { padding: 4px 8px; font-size: 8px; }
+        .page-nav { gap: 4px; }
+        .page-nav .page-info { min-width: 50px; font-size: 9px; }
+        .viewer canvas { margin: 4px auto; }
+    }
+</style>
+</head>
+<body>
+
+<div class="fn">
+    <a class="fn-item active" href="./">RESEARCH</a>
+    <a class="fn-item" href="../">HOME</a>
+    <a class="fn-item" href="../login.html">LOGIN</a>
+    <span class="fn-item fn-fill"></span>
+    <span class="fn-clock" id="clock">00:00:00</span>
+</div>
+<div class="rule"></div>
+
+<div class="cmd">
+    <span class="prompt">MM CAPITAL</span>
+    <span class="path">/ RESEARCH / <span id="breadcrumb">VIEW</span></span>
+</div>
+
+<div class="toolbar">
+    <a class="btn" href="./">&larr; BACK</a>
+    <span class="doc-title" id="docTitle">&mdash;</span>
+    <div class="page-nav" id="pageNav" style="display:none">
+        <button id="prevPage">&larr;</button>
+        <span class="page-info" id="pageInfo">1 / 1</span>
+        <button id="nextPage">&rarr;</button>
+    </div>
+    <a class="btn btn-download" id="downloadBtn" href="#" download>DOWNLOAD &darr;</a>
+</div>
+
+<div class="viewer" id="viewer">
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <span>LOADING PDF...</span>
+    </div>
+    <div class="error-msg" id="errorMsg">
+        <div class="msg" id="errorText">Unable to load PDF.</div>
+        <a class="btn" id="errorBtn" href="#" download>DOWNLOAD PDF &darr;</a>
+    </div>
+</div>
+
+<div class="bot">
+    <span><span class="dot"></span>ONLINE</span>
+    <span id="fileInfo">PDF</span>
+    <span class="grn">VIEWER</span>
+    <span class="bot-fill"></span>
+    <span class="grn">MM CAPITAL</span>
+</div>
+
+<script type="module">
+    // Clock
+    function tick() {
+        var n = new Date();
+        document.getElementById('clock').textContent =
+            String(n.getUTCHours()).padStart(2,'0') + ':' +
+            String(n.getUTCMinutes()).padStart(2,'0') + ':' +
+            String(n.getUTCSeconds()).padStart(2,'0') + ' UTC';
+    }
+    tick(); setInterval(tick, 1000);
+
+    // Parse query params
+    var params = new URLSearchParams(window.location.search);
+    var file = params.get('file');
+    var title = params.get('title') || 'Untitled';
+
+    // Set page content
+    document.title = title + ' – MM CAPITAL';
+    document.getElementById('docTitle').textContent = title;
+    document.getElementById('breadcrumb').textContent = title.toUpperCase();
+
+    var viewerEl = document.getElementById('viewer');
+    var loadingEl = document.getElementById('loading');
+    var errorEl = document.getElementById('errorMsg');
+    var downloadBtn = document.getElementById('downloadBtn');
+    var errorBtn = document.getElementById('errorBtn');
+
+    function showError(msg) {
+        loadingEl.style.display = 'none';
+        errorEl.style.display = 'flex';
+        document.getElementById('errorText').textContent = msg || 'Unable to load PDF.';
+    }
+
+    if (!file) {
+        showError('No file specified.');
+    } else {
+        downloadBtn.href = file;
+        downloadBtn.setAttribute('download', file);
+        errorBtn.href = file;
+        errorBtn.setAttribute('download', file);
+        document.getElementById('fileInfo').textContent = 'PDF — ' + file;
+
+        // Load PDF.js
+        try {
+            var pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs');
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+
+            var pdf = await pdfjsLib.getDocument(file).promise;
+            var totalPages = pdf.numPages;
+
+            loadingEl.style.display = 'none';
+
+            // Render all pages
+            var pixelRatio = window.devicePixelRatio || 1;
+
+            for (var i = 1; i <= totalPages; i++) {
+                var page = await pdf.getPage(i);
+                var canvas = document.createElement('canvas');
+                var context = canvas.getContext('2d');
+
+                // Scale to fit container width
+                var containerWidth = viewerEl.clientWidth - 16;
+                var unscaledViewport = page.getViewport({ scale: 1 });
+                var scale = (containerWidth / unscaledViewport.width) * pixelRatio;
+                var viewport = page.getViewport({ scale: scale });
+
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                canvas.style.width = (viewport.width / pixelRatio) + 'px';
+                canvas.style.height = (viewport.height / pixelRatio) + 'px';
+
+                viewerEl.appendChild(canvas);
+
+                await page.render({ canvasContext: context, viewport: viewport }).promise;
+            }
+
+            // Show page count in status bar
+            document.getElementById('fileInfo').textContent = 'PDF — ' + totalPages + ' PAGES — ' + file;
+
+            // Page navigation (scroll to page)
+            if (totalPages > 1) {
+                var pageNavEl = document.getElementById('pageNav');
+                var pageInfoEl = document.getElementById('pageInfo');
+                var prevBtn = document.getElementById('prevPage');
+                var nextBtn = document.getElementById('nextPage');
+                pageNavEl.style.display = 'flex';
+                pageInfoEl.textContent = '1 / ' + totalPages;
+
+                var canvases = viewerEl.querySelectorAll('canvas');
+
+                function getCurrentPage() {
+                    var scrollTop = viewerEl.scrollTop;
+                    var viewerTop = viewerEl.getBoundingClientRect().top;
+                    for (var j = canvases.length - 1; j >= 0; j--) {
+                        var rect = canvases[j].getBoundingClientRect();
+                        if (rect.top <= viewerTop + 50) return j + 1;
+                    }
+                    return 1;
+                }
+
+                function updatePageInfo() {
+                    var current = getCurrentPage();
+                    pageInfoEl.textContent = current + ' / ' + totalPages;
+                    prevBtn.disabled = current <= 1;
+                    nextBtn.disabled = current >= totalPages;
+                }
+
+                viewerEl.addEventListener('scroll', updatePageInfo);
+
+                prevBtn.addEventListener('click', function() {
+                    var current = getCurrentPage();
+                    if (current > 1) {
+                        canvases[current - 2].scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+
+                nextBtn.addEventListener('click', function() {
+                    var current = getCurrentPage();
+                    if (current < totalPages) {
+                        canvases[current].scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+
+                updatePageInfo();
+            }
+
+            // Handle resize
+            var resizeTimeout;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(async function() {
+                    var newContainerWidth = viewerEl.clientWidth - 16;
+                    var newPixelRatio = window.devicePixelRatio || 1;
+                    var allCanvases = viewerEl.querySelectorAll('canvas');
+
+                    for (var k = 0; k < allCanvases.length; k++) {
+                        var pg = await pdf.getPage(k + 1);
+                        var ctx = allCanvases[k].getContext('2d');
+                        var uv = pg.getViewport({ scale: 1 });
+                        var s = (newContainerWidth / uv.width) * newPixelRatio;
+                        var vp = pg.getViewport({ scale: s });
+
+                        allCanvases[k].width = vp.width;
+                        allCanvases[k].height = vp.height;
+                        allCanvases[k].style.width = (vp.width / newPixelRatio) + 'px';
+                        allCanvases[k].style.height = (vp.height / newPixelRatio) + 'px';
+
+                        await pg.render({ canvasContext: ctx, viewport: vp }).promise;
+                    }
+                }, 300);
+            });
+
+        } catch (err) {
+            console.error('PDF load error:', err);
+            showError('Unable to load PDF in browser. Click below to download.');
+        }
+    }
+</script>
+
+</body>
+</html>
