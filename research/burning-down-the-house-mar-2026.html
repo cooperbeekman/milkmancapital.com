@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Burning Down the House – MM CAPITAL</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        background: #000;
+        color: #c5c8c6;
+        font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        font-size: 12px;
+    }
+
+    .fn {
+        display: flex;
+        align-items: stretch;
+        border-bottom: 1px solid #1a1a1a;
+        height: 28px;
+        flex-shrink: 0;
+    }
+
+    .fn-item {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 14px;
+        font-size: 10px;
+        letter-spacing: 1px;
+        color: #555;
+        text-decoration: none;
+        border-right: 1px solid #1a1a1a;
+        transition: background 0.1s, color 0.1s;
+        cursor: pointer;
+    }
+
+    .fn-item:hover { background: #111; color: #00ff66; }
+    .fn-item.active { background: #00ff66; color: #000; font-weight: 700; }
+    .fn-fill { flex: 1; border-right: none; }
+
+    .fn-clock {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 14px;
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: #00ff66;
+    }
+
+    .rule { height: 1px; background: #00ff66; opacity: 0.6; }
+
+    .cmd {
+        padding: 8px 16px;
+        font-size: 11px;
+        color: #555;
+        border-bottom: 1px solid #111;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    .cmd .prompt { color: #00ff66; }
+    .cmd .path { color: #888; }
+
+    .toolbar {
+        display: flex;
+        align-items: center;
+        padding: 8px 16px;
+        border-bottom: 1px solid #111;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    .toolbar .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 14px;
+        font-size: 9px;
+        font-family: inherit;
+        letter-spacing: 1px;
+        border: 1px solid #222;
+        background: transparent;
+        color: #888;
+        cursor: pointer;
+        transition: all 0.15s;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .toolbar .btn:hover { border-color: #00ff66; color: #00ff66; background: #001a00; }
+    .toolbar .btn-accent { border-color: #00ff66; color: #00ff66; }
+    .toolbar .btn-accent:hover { background: #00ff66; color: #000; }
+    .toolbar-fill { flex: 1; }
+
+    .content {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .article {
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 48px 24px 120px;
+    }
+
+    .article-meta {
+        margin-bottom: 40px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid #111;
+    }
+
+    .article-date {
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: #00ff66;
+        opacity: 0.5;
+        margin-bottom: 12px;
+    }
+
+    .article-title {
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: #e0e0e0;
+        line-height: 1.4;
+    }
+
+    .article-body {
+        font-size: 13px;
+        line-height: 1.85;
+        color: #999;
+    }
+
+    .article-body p {
+        margin-bottom: 20px;
+    }
+
+    .article-body h2 {
+        font-size: 14px;
+        font-weight: 700;
+        color: #ccc;
+        margin-top: 40px;
+        margin-bottom: 16px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+
+    .article-body strong {
+        color: #ccc;
+        font-weight: 600;
+    }
+
+    .article-body em {
+        color: #aaa;
+        font-style: italic;
+    }
+
+    .article-nav {
+        margin-top: 60px;
+        padding-top: 24px;
+        border-top: 1px solid #111;
+    }
+
+    .article-nav a {
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: #00ff66;
+        text-decoration: none;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+
+    .article-nav a:hover { opacity: 1; }
+
+    .bot {
+        display: flex;
+        align-items: center;
+        height: 24px;
+        border-top: 1px solid #1a1a1a;
+        padding: 0 16px;
+        gap: 16px;
+        flex-shrink: 0;
+    }
+
+    .bot span { font-size: 9px; letter-spacing: 2px; color: #333; }
+
+    .bot .dot {
+        display: inline-block;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: #00ff66;
+        margin-right: 6px;
+        box-shadow: 0 0 4px rgba(0,255,100,0.4);
+    }
+
+    .bot .grn { color: #00ff66; opacity: 0.4; }
+    .bot-fill { flex: 1; }
+
+    @media (max-width: 600px) {
+        .article { padding: 32px 16px 80px; }
+        .article-title { font-size: 17px; }
+        .article-body { font-size: 12px; }
+        .cmd { display: none; }
+        .toolbar { padding: 6px 10px; gap: 6px; }
+        .toolbar .btn { padding: 4px 10px; font-size: 8px; }
+    }
+
+    @media (min-width: 1200px) {
+        body { font-size: 14px; }
+        .fn { height: 36px; }
+        .fn-item { padding: 0 20px; font-size: 12px; }
+        .fn-clock { font-size: 12px; }
+        .cmd { padding: 12px 32px; font-size: 13px; }
+        .toolbar { padding: 10px 32px; }
+        .toolbar .btn { padding: 6px 16px; font-size: 10px; }
+        .article { max-width: 780px; padding: 56px 32px 140px; }
+        .article-date { font-size: 11px; }
+        .article-title { font-size: 24px; }
+        .article-body { font-size: 14px; line-height: 1.9; }
+        .article-body h2 { font-size: 16px; }
+        .bot { height: 32px; padding: 0 32px; }
+        .bot span { font-size: 11px; }
+    }
+
+    @media (min-width: 1600px) {
+        body { font-size: 15px; }
+        .fn { height: 40px; }
+        .fn-item { padding: 0 24px; font-size: 13px; }
+        .fn-clock { font-size: 13px; }
+        .cmd { padding: 14px 48px; font-size: 14px; }
+        .toolbar { padding: 12px 48px; }
+        .toolbar .btn { padding: 7px 18px; font-size: 11px; }
+        .article { max-width: 860px; padding: 64px 40px 160px; }
+        .article-date { font-size: 12px; }
+        .article-title { font-size: 26px; }
+        .article-body { font-size: 15px; }
+        .article-body h2 { font-size: 17px; }
+        .bot { height: 36px; padding: 0 48px; }
+        .bot span { font-size: 12px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="fn">
+    <a class="fn-item active" href="./">RESEARCH</a>
+    <a class="fn-item" href="../">HOME</a>
+    <a class="fn-item" href="../login.html">LOGIN</a>
+    <span class="fn-item fn-fill"></span>
+    <span class="fn-clock" id="clock">00:00:00</span>
+</div>
+<div class="rule"></div>
+
+<div class="cmd">
+    <span class="prompt">MM CAPITAL</span>
+    <span class="path">/ RESEARCH / BURNING DOWN THE HOUSE</span>
+</div>
+
+<div class="toolbar">
+    <a class="btn" href="./">&larr; BACK</a>
+    <span class="toolbar-fill"></span>
+    <button class="btn btn-accent" onclick="shareArticle()">SHARE &uarr;</button>
+</div>
+
+<div class="content">
+    <article class="article">
+        <div class="article-meta">
+            <div class="article-date">2026.03.31</div>
+            <h1 class="article-title">Burning Down the House</h1>
+        </div>
+
+        <div class="article-body">
+            <p>It is becoming increasingly difficult to publish a macro focused idea when markets right now are dominated by the ebb and flow of geopolitical headlines. Oil and US treasury yields are the only two macro factors that appear to matter short term and they are conducting risk and everything else correlated.</p>
+
+            <p>Bitcoin covers the far left and far right tail of the risk distribution and indeed, Bitcoin has outperformed virtually every macro asset, aside from oil, since the outbreak of the war.</p>
+
+            <p>Whilst higher oil, a stronger dollar and rising bond yields, or more importantly rising bond volatility, are HUGE liquidity headwinds for Bitcoin, Bitcoin as a non sovereign, borderless asset remains the ultimate hedge against the failure of existing economic and political structures. Certainly, Mr Trump is ripping up the existing global order and there are few places of safety to hide outside of Bitcoin and gold.</p>
+
+            <h2>Gold</h2>
+
+            <p>The underperformance of gold since the start of the Iran war perhaps contradicts the above statement. However, just like Bitcoin's underperformance over the past few months since hitting record highs in October, the idea that Bitcoin was failing to act as a hedge against debasement or inflation never held water (Bitcoin is up 10x since 2020 when the Fed and others sparked global inflation via mass money printing amid shuttered supply chains), gold is similarly "failing" for structural flow reasons rather than a fundamental failure as a safe haven.</p>
+
+            <p>This is important to understand because once those flows abate, gold will likely resume its path higher, making new highs as it reconnects with its fundamentals. Ditto for Bitcoin which suffered heavy structural selling since Q4 2025 from whales taking profit, perhaps driven by a pavlovian response to the 4 year cycle thesis.</p>
+
+            <p>For gold, its rise and outperformance over the past year or so was simply a function of demand from Asian and Middle Eastern central banks who started to accumulate and direct more of their reserves into gold, away from dollar reserves.</p>
+
+            <p>The old world playbook for gold, where war and volatility were an automatic green candle, has been overwritten by a new pro cyclical regime of reserve accumulation. Ever since the 2022 freeze of Russian assets, gold transitioned from a simple fear and debasement hedge to the neutral reserve asset of choice for surplus nations like the GCC and China.</p>
+
+            <p>If gold is now partially a function of trade surpluses, its vulnerability comes when those surpluses fall or are required to be monetized. The blockade of the Strait of Hormuz is not just a geopolitical shock. It is a direct hit to the export revenues and excess savings that these countries were recycling into gold. When those surpluses compress and fiscal obligations mount, the very reserve accumulation flow that drove the recent breakout goes to zero. Or worse, flips to liquidation.</p>
+
+            <p>Gold is not failing as a safe haven. It is simply a victim of a liquidity squeeze on sovereign balance sheets. Quite likely, when oil begins to flow through the Strait of Hormuz and reserve surpluses begin to build once more, gold will continue its bull run. Indeed, Friday we got the first signs of gold decoupling from equities.</p>
+
+            <h2>Bitcoin Structural Pressure Easing</h2>
+
+            <p>Contrary to the structural pressures on gold, Bitcoin is seeing a reversal in some of the sell pressures that weighed in Q4 and early Q1. The latest data from Glassnode suggests we have moved from acute pain into a controlled de risking phase. Realized profit taking has collapsed by 96% since last year. That is a textbook signal that the seller exhaustion we have been looking for is finally here. But spot volume remains anemic. We are essentially in a demand vacuum as it relates to the retail crowd and with derivatives markets showing negative funding rates and a better bid for downside protection, plenty of caution remains despite the relative price stability and outperformance of Bitcoin through March.</p>
+
+            <p>The smart money bid however has returned with net inflows to BTC ETFs of over $1.5bn since the war on Iran began late Feb. As Bloomberg's James Seyffart notes, Bitcoin ETFs have reversed over $3bn of the $9bn outflows from the ETFs since the 10th October liquidation event and net ETF flows are now essentially flat year to date. Morgan Stanley with its $6trn in assets and 16k advisors launching a Bitcoin ETF suggests interest and demand remains strong.</p>
+
+            <p>As Glassnode notes, the structural setup for Bitcoin is looking constructive if not outright bullish. Accumulation in the $60k to $70k zone with short term holder supply overhead. We need a clean break above $74k and there is likely supply to chew through given short term cost basis sits just above $70k, whilst a heavier concentration of supply sits in the $84k zone should we get there.</p>
+
+            <h2>Burning Down the House</h2>
+
+            <p>Despite the more constructive structural setup in Bitcoin, the broader macro narrative has taken a hawkish turn with markets pricing rate hikes for major central banks, including the Fed, as the energy shock from the Strait of Hormuz closure filters into headline CPI. This looks completely mispriced to us and something we would be inclined to fade, especially as it relates to the Fed who have a dual mandate of inflation and full employment.</p>
+
+            <p>Central banks forecasting on a two year horizon should look through one off price spikes from supply side disruptions. Especially where there have been signs of growth slowing and labour markets cooling, as we have seen in the UK and US.</p>
+
+            <p>Hiking rates does not help reopen the Strait of Hormuz and to try and achieve short term inflation targets by obliterating growth and demand so that we get offsetting deflation elsewhere is akin to burning down the house to cook the turkey.</p>
+
+            <p>We feel therefore the move in front end rates is overdone, but particularly the sell off in longer bonds. Tighter policy in response to a spike in short term headline inflation will choke off growth. Longer dated yields are typically a function of growth expectations, notwithstanding the term premia markets may additionally price in on the back of debt sustainability fears.</p>
+
+            <p>We expect then bond yields to settle down across the curve, especially as hiking rates or keeping policy too tight in response to a supply side shock will actually prove deflationary over the medium to longer term. Indeed, a look at US 5y5y inflation rates (5yr inflation expectations, 5 years out from now) shows the market is already pricing longer term disinflation as it prices a hawkish response from central banks.</p>
+
+            <p><em>US 5y5y inflation expectations: longer term inflation expectations falling</em></p>
+
+            <img src="images/us-5y5y-inflation-expectations.png" alt="US 5y5y inflation expectations chart showing longer term inflation expectations falling" style="width:100%;margin:16px 0 28px;border:1px solid #111;border-radius:2px;">
+
+            <p>The difference between this supply shock and that of Covid is that in 2020, alongside the supply chain disruption, governments across the world enacted massive fiscal programmes where they stuffed cash into people's pockets and simultaneously sparked a positive demand shock. This time is very different and we suspect the hit to growth will necessarily keep central banks sidelined and markets move to price out the rate hikes currently priced in. We still believe the next move for the Fed will be to cut rates, especially under the incoming Warsh who wants lower Fed rates to spark private credit and investment.</p>
+
+            <p>The US bond market is the key market to watch for the TACO trade. 5% in US 30yr yields appears to be a line in the sand as far as Bessent is concerned and will usually spark jawboning with a positive de escalation tweet, otherwise expect this all leads to financial repression and some form of yield curve control.</p>
+
+            <p>Contained bond yields, and importantly falling bond volatility, should help put a floor in risk markets. Remember, markets are simply a function of rates and liquidity and easing rates feeding lower bond vol helps ease market liquidity and provides positive tailwinds for risk.</p>
+
+            <p>Strap in then for a volatile few weeks as the April 6th ceasefire deadline approaches, but we feel a cooling in bond market volatility into April should provide support for equities and broader risk, limiting further downside from here.</p>
+
+            <p>In a highly uncertain market however, Bitcoin continues to provide the far left and far right tail hedge. Keep stacking.</p>
+        </div>
+
+        <nav class="article-nav">
+            <a href="./">&larr; ALL RESEARCH</a>
+        </nav>
+    </article>
+</div>
+
+<div class="bot">
+    <span><span class="dot"></span>ONLINE</span>
+    <span>2026.03.31</span>
+    <span class="grn">RESEARCH</span>
+    <span class="bot-fill"></span>
+    <span class="grn">MM CAPITAL</span>
+</div>
+
+<script>
+    function tick() {
+        var n = new Date();
+        document.getElementById('clock').textContent =
+            String(n.getUTCHours()).padStart(2,'0') + ':' +
+            String(n.getUTCMinutes()).padStart(2,'0') + ':' +
+            String(n.getUTCSeconds()).padStart(2,'0') + ' UTC';
+    }
+    tick(); setInterval(tick, 1000);
+
+    function shareArticle() {
+        var data = { title: document.title, url: window.location.href };
+        if (navigator.share) {
+            navigator.share(data);
+        } else {
+            navigator.clipboard.writeText(window.location.href).then(function() {
+                var btn = document.querySelector('[onclick="shareArticle()"]');
+                var orig = btn.textContent;
+                btn.textContent = 'COPIED';
+                setTimeout(function() { btn.innerHTML = 'SHARE &uarr;'; }, 1500);
+            });
+        }
+    }
+</script>
+
+</body>
+</html>
